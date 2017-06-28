@@ -15,6 +15,8 @@ class SinaItem(scrapy.Item):
 
 
 class SinaContentItem(scrapy.Item):
+    channelName = scrapy.Field()
+    url = scrapy.Field()
     title = scrapy.Field()
     publishTime = scrapy.Field()
     fromSource = scrapy.Field()

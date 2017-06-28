@@ -6,39 +6,50 @@ import time
 from scrapy import Selector
 from ..items import SinaContentItem
 
+
 class SinaSpider(scrapy.Spider):
     name = 'list'
     download_delay = 2
+    '''cateid:
+        热点：1z
+        产业：1z_22
+        创事记：1z_vAZ
+        手机：1z_28
+        数码：1z_26
+        探索：1z_23
+        苹果汇：1z_7Wr3
+        创业：1z_20
 
+        action:
+            1:上滑
+            0:第一页
+        ctime:上次请求的最后一条
+    '''
     def start_requests(self):
-        # params = '''
-        #         callback=jQuery111202870494215627517_1498024592835&
-        #         cateid=1z&
-        #         cre=tianyi&
-        #         mod=pctech&
-        #         merge=3&
-        #         statics=1&
-        #         length=15&
-        #         up=1&
-        #         down=0&
-        #         fields=media, author, labels_show, commentid, comment_count, title, url, info, thumbs, thumb, ctime, reason, vid, img_count,
-        #         tm=int(time.time())&
-        #         action=1&
-        #         top_id=1Tbiz, 1Te8L, 1Tdwo, 1Teft, 1TeGe, 1TYCd, 1TXKW, 1Tbpa,
-        #         offset=0&
-        #         ad=json.dumps({"rotate_count": 100, "platform": "pc", "channel": "tianyi_pctech", "page_url": "http://tech.sina.com.cn/",
-        #                "timestamp": 1498024592929})&
-        #         ctime=int(time.time())&
-        #         _'=1498024592845&
-        #     '''
-        # # params = params.replace('int(time.time())', str(int(time.time()))).replace('1498024592929', str(1498024592929)).replace('time.time()', str(time.time()))
-        # # params.replace('')
+        params = {
+            'callback': '',
+            'cateid': '1z',
+            'cre': 'tianyi',
+            'mod': 'pctech',
+            'merge': '3',
+            'statics': '1',
+            'length': '15',
+            'up': '0',
+            'down': '0',
+            'fields': 'media%2Cauthor%2Clabels_show%2Ccommentid%2Ccomment_count%2Ctitle%2Curl%2Cinfo%2Cthumbs%2Cthumb%2Cctime%2Creason%2Cvid%2Cimg_count',
+            'tm': '1498465995',
+            'action': '0',
+            'top_id': '1W2E8%2C1W1o4%2C1W0G3%2C1W5cq%2C1W0jK%2C1W2RD%2C1W2FW%2C1W55s%2C1W3VG',
+            'offset': '0',
+            'ad': '%7B%22rotate_count%22%3A100%2C%22platform%22%3A%22pc%22%2C%22channel%22%3A%22tianyi_pctech%22%2C%22page_url%22%3A%22http%3A%2F%2Ftech.sina.com.cn%2F%22%2C%22timestamp%22%3A1498462406453%7D',
+            'ctime': '',
+            '_': '1498462406769',
+        }
         urls = [
-            'http://tech.sina.com.cn/t/2017-06-19/doc-ifyhfnqa4438329.shtml?cre=tianyi&mod=pctech&loc=7&r=0&doct=0&rfunc=13&tj=none&s=0&tr=1',
+            'http://cre.mix.sina.com.cn/api/v3/get?'
         ]
         for url in urls:
-            yield scrapy.Request(url=url, callback=self.parse, cookies={'SUB': '_2AkMuFoMaf8NxqwJRmP0RyWrhaoh1yw7EieKYSnLBJRMyHRl-yD83qnUntRCe5Jvl9dNMpdUed35Y7eiXZcRQZA..',
-                                                                       'SUBP': '0033WrSXqPxfM72-Ws9jqgMF55529P9D9Wh5_ALReIU66h.RlIImdams'})
+            yield scrapy.Request(url=url, callback=self.parse,)
 
     def parse(self, response):
         a = 1

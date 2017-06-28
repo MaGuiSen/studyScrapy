@@ -42,20 +42,23 @@ class MysqlPipeline(object):
         self.connector = connector
 
     def process_item(self, item, spider):
+        print '............................................db save ..............'
         cursor = self.connector.cursor()
-        sql = "insert into sina_detail (title,contents,image_urls,fromSource,publishTime) values(%s,%s,%s,%s,%s)"
+        sql = "insert into sina_detail (title,contents,image_urls,fromSource,publishTime,channelName,url) values(%s,%s,%s,%s,%s,%s,%s)"
         cursor.execute(sql, (item['title'],
                              json.dumps(item['contents'], encoding="utf8", ensure_ascii=False),
                              json.dumps(item['image_urls'], encoding="utf8", ensure_ascii=False),
                              item['fromSource'],
-                             item['publishTime']))
+                             item['publishTime'],
+                             item['channelName'],
+                             item['url']))
         cursor.close()
         print 'SaveDb'
+        self.connector.commit()
         return item
 
     def close_spider(self, spider):
         self.connector.commit()
-        print 'SaveDone'
 
 
 class MyImagesPipeline(ImagesPipeline):

@@ -1,0 +1,73 @@
+使用新浪滚动新闻
+http://roll.tech.sina.com.cn/s/channel.php?ch=05#col=30&spec=&type=&ch=05&k=&offset_page=0&offset_num=0&num=60&asc=&page=9
+page 从 1开始
+
+热点：
+http://cre.mix.sina.com.cn/api/v3/get?
+callback=
+cateid=1z
+cre=tianyi
+mod=pctech
+merge=3
+statics=1
+length=15
+up=11
+down=0
+fields=media%2Cauthor%2Clabels_show%2Ccommentid%2Ccomment_count%2Ctitle%2Curl%2Cinfo%2Cthumbs%2Cthumb%2Cctime%2Creason%2Cvid%2Cimg_count
+tm=1498465995
+action=1
+top_id=1W2E8%2C1W1o4%2C1W0G3%2C1W5cq%2C1W0jK%2C1W2RD%2C1W2FW%2C1W55s%2C1W3VG
+offset=0
+ad=%7B%22rotate_count%22%3A100%2C%22platform%22%3A%22pc%22%2C%22channel%22%3A%22tianyi_pctech%22%2C%22page_url%22%3A%22http%3A%2F%2Ftech.sina.com.cn%2F%22%2C%22timestamp%22%3A1498462406453%7D
+ctime=1498426639
+_=1498462406769
+
+规则：
+callback应该是跨域问题处理，不加也可以返回正常的json
+	先请求最新的一页：
+	action：0
+	ctime:空
+	up:0
+
+	下一页:
+	action：1
+	up:1   (第n)
+	ctime：第一次请求得到数据的最后一条数据的ctime
+渠道：
+更改cateid
+	热点：1z
+	产业：1z_22
+	创事记：1z_vAZ
+	手机：1z_28
+	数码：1z_26
+	探索：1z_23
+	苹果汇：1z_7Wr3
+	创业：1z_20
+其他渠道的请求：
+http://cre.mix.sina.com.cn/get/cms/feed
+callback:
+cateid:1z_7Wr3
+cre:tianyi
+mod:pctechc
+merge:3
+statics:1
+up:0
+down:0
+fields:media%2Cauthor%2Clabels_show%2Ccommentid%2Ccomment_count%2Ctitle%2Curl%2Cinfo%2Cthumbs%2Cthumb%2Cctime%2Creason%2Cvid%2Cimg_count
+tm:1498469886
+action:0
+offset:0
+ad:%7B%22rotate_count%22%3A100%2C%22platform%22%3A%22pc%22%2C%22channel%22%3A%22tianyi_pctech%22%2C%22page_url%22%3A%22http%3A%2F%2Ftech.sina.com.cn%2F%22%2C%22timestamp%22%3A1498469166955%7D
+length:15
+port:3602
+imp_type:2
+pcProduct:16
+ctime=1498426639
+_:1498469166836
+
+分页应该同上
+
+	
+	
+
+

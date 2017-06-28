@@ -99,7 +99,7 @@ Cancelled = {
 
 class FlightSpider(scrapy.Spider):
     name = 'flight_arrival'
-    download_delay = 2
+    download_delay = 1
     user_agent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36'
     headers = {'User-Agent': user_agent}
 
