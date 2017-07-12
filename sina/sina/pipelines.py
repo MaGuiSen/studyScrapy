@@ -12,6 +12,7 @@ import MySQLdb
 from mysql.connector import MySQLConnection
 from scrapy.exceptions import DropItem
 from scrapy.http import Request
+from scrapy.pipelines.files import FilesPipeline
 from scrapy.pipelines.images import ImagesPipeline
 from twisted.enterprise import adbapi
 

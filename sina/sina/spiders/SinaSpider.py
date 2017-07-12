@@ -17,14 +17,40 @@ class SinaSpider(scrapy.Spider):
     headers = {'User-Agent': user_agent}
 
     def start_requests(self):
-        url = 'http://roll.news.sina.com.cn/interface/rollnews_ch_out_interface.php?col=30&spec=&type=&ch=05&k=&offset_page=0&offset_num=0&num=60&asc=&page='
-        page = 0
-        while not isEnd:
-            r = random.uniform(0, 1)
-            page += 1
-            newUrl = url + str(page)
-            newUrl += ('&r=' + str(r))
-            yield scrapy.Request(url=newUrl, meta={'url': newUrl}, callback=self.parseList)
+        yield scrapy.Request(url='http://tech.sina.com.cn/it/2017-06-28/doc-ifyhmtcf3013516.shtml',
+                             meta={'url': 'http://tech.sina.com.cn/it/2017-06-28/doc-ifyhmtcf3013516.shtml'},
+                             callback=self.parseImg)
+
+    def parseImg(self, response):
+        contentItem = SinaContentItem()
+        image_url = 'http://n.sinaimg.cn/tech/crawl/20170628/7Jxu-fyhneam5299458.jpg'
+        m2 = hashlib.md5()
+        m2.update(image_url)
+        image_hash = m2.hexdigest()
+        image_urls = [{
+            'url': image_url,
+            'hash': image_hash
+        }]
+
+        # image_url = 'http://ww1.1i580.com/img/sytest5-2.jpg'
+        # m2 = hashlib.md5()
+        # m2.update(image_url)
+        # image_hash = m2.hexdigest()
+        # image_urls.append({
+        #     'url': image_url,
+        #     'hash': image_hash
+        # })
+        contentItem['image_urls'] = image_urls
+        return contentItem
+    # def start_requests(self):
+    #     url = 'http://roll.news.sina.com.cn/interface/rollnews_ch_out_interface.php?col=30&spec=&type=&ch=05&k=&offset_page=0&offset_num=0&num=60&asc=&page='
+    #     page = 0
+    #     while not isEnd:
+    #         r = random.uniform(0, 1)
+    #         page += 1
+    #         newUrl = url + str(page)
+    #         newUrl += ('&r=' + str(r))
+    #         yield scrapy.Request(url=newUrl, meta={'url': newUrl}, callback=self.parseList)
 
     def parseList(self, response):
         url = response.meta['url']
