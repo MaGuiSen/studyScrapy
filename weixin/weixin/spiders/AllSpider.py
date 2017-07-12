@@ -35,7 +35,7 @@ class AllSpider(scrapy.Spider):
                 continue
             # 进行爬虫
             # TODO..清除cookie
-            # 获取源
+            # 获取源  可用的，切（是更新失败的，或者最新的同时更新时间跟当前相比大于5分钟）
             sources = self.wxSourceDao.queryEnable()
             if not sources:
                 time.sleep(5)
@@ -44,8 +44,9 @@ class AllSpider(scrapy.Spider):
             while index >= len(sources):
                 if self.request_stop:
                     # 当网络出现被绊的情况，就需要停止所有的请求等待IP更换
-                    continue
+                    break
                 source = sources[index]
+                # 更新当前条状态为 更新中，如果更新失败或者被绊则更新为更新失败，更新成功之后设置为成功
 
 
 
