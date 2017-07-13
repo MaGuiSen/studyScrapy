@@ -18,7 +18,6 @@ class WXSpider(scrapy.Spider):
     def __init__(self, name=None, **kwargs):
         super(WXSpider, self).__init__(name=None, **kwargs)
         self.count = 0;
-
     def start_requests(self):
         weChatName = [
             "BizNext",

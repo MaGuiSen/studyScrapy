@@ -6,10 +6,10 @@ from scrapy import cmdline
 
 class IPSpider(scrapy.Spider):
     name = 'crawl_ip'
-
+    # Ignoring response <503 http://www.xicidaili.com/>: HTTP status code is not handled or not allowed   503 Service Unavailable
     def start_requests(self):
         urls = [
-            'http://www.xicidaili.com/',
+            'http://blog.csdn.net/wangzhaotongalex/article/details/49157043',
         ]
         for url in urls:
             print u'请求url：' + url
