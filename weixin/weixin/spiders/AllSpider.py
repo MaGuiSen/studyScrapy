@@ -68,9 +68,10 @@ class AllSpider(scrapy.Spider):
                 url = 'http://weixin.sogou.com/weixin?type=1&s_from=input&ie=utf8&_sug_=n&_sug_type_=&query='
                 newUrl = url + wx_account
                 self.logDao.warn(u'进行抓取:'+newUrl)
+                # TODO..no more duplicates will be shown (see DUPEFILTER_DEBUG to show all duplicates)
                 yield scrapy.Request(url=newUrl,
                                      meta={'url': newUrl, 'wx_account': wx_account, 'source': source},
-                                     callback=self.parseList)
+                                     callback=self.parseList, dont_filter=True)
             if self.request_stop:
                 # 则需要发起通知 进行重新拨号
                 # 但是并不知道什么时候网络重新拨号成功呢
