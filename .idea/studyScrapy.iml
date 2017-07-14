@@ -7,6 +7,8 @@
       <sourceFolder url="file://$MODULE_DIR$/youxiputao" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/flight" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/weixin" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/wangyi" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/tengxun" isTestSource="false" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

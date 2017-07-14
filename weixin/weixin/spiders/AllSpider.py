@@ -7,15 +7,17 @@ from scrapy import Selector
 from weixin.db.LogDao import LogDao
 from weixin.db.WxSourceDao import WxSourceDao
 from weixin.util import NetworkUtil
+from weixin.util import TimerUtil
 
 isEnd = False
 
 
 class AllSpider(scrapy.Spider):
     name = 'all'
-    user_agent = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.221 Safari/537.36 SE 2.X MetaSr 1.0'
-    headers = {'User-Agent': user_agent}
+    # user_agent = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.221 Safari/537.36 SE 2.X MetaSr 1.0'
+    # headers = {'User-Agent': user_agent}
     download_delay = 20  # 基础间隔 0.5*download_delay --- 1.5*download_delays之间的随机数
+    handle_httpstatus_list = [301, 302, 204, 206, 403, 404, 500]  # 可以处理重定向及其他错误码导致的 页面无法获取解析的问题
 
     def __init__(self, name=None, **kwargs):
         super(AllSpider, self).__init__(name=None, **kwargs)
@@ -27,17 +29,19 @@ class AllSpider(scrapy.Spider):
         self.logDao = LogDao('wx_source_catch')
 
     def start_requests(self):
+        # TODO..加上while可能有问题，有些抓不到
         while True:
             # 检测网络
             if not NetworkUtil.checkNetWork():
                 # 20s检测一次
-                time.sleep(20)
+                TimerUtil.sleep(20)
                 self.logDao.warn(u'检测网络不可行')
                 continue
+
             # 检测服务器
             if not NetworkUtil.checkService():
                 # 20s检测一次
-                time.sleep(20)
+                TimerUtil.sleep(20)
                 self.logDao.warn(u'检测服务器不可行')
                 continue
 
@@ -47,13 +51,15 @@ class AllSpider(scrapy.Spider):
                 if timeSpace / 60 <= 2:
                     # 当时间间隔小于 2分钟 就不请求
                     continue
+                    pass
                 else:
                     self.request_stop = False
 
             # 进行爬虫
             # TODO..清除cookie
-            # 获取源  可用的，且（是更新失败的，或者最新的同时更新时间跟当前相比大于20分钟）
-            sources = self.wxSourceDao.queryEnable()
+            # 获取源  可用的，且（是更新失败的，或者最新的同时更新时间跟当前相比大于40分钟）
+            sources = self.wxSourceDao.queryEnable(isRandom=True)
+
             for source in sources:
                 if self.request_stop:
                     self.logDao.warn(u'出现被绊或者出现网络异常，退出循环')
@@ -61,7 +67,6 @@ class AllSpider(scrapy.Spider):
                     break
                 # 更新当前条状态为 更新中，如果更新失败或者被绊则更新为更新失败，更新成功之后设置为成功
                 (wx_name, wx_account, wx_url, wx_avatar, update_status, is_enable, update_time) = source
-                # print wx_name, wx_account, wx_url, wx_avatar, update_status, is_enable, update_time
                 # 更新状态为更新中
                 self.wxSourceDao.updateStatus(wx_account, 'updating')
                 # 进行页面访问
@@ -72,6 +77,12 @@ class AllSpider(scrapy.Spider):
                 yield scrapy.Request(url=newUrl,
                                      meta={'url': newUrl, 'wx_account': wx_account, 'source': source},
                                      callback=self.parseList, dont_filter=True)
+                # 跑空线程2秒
+                TimerUtil.sleep(2)
+
+            if sources:
+                self.logDao.info(u'抓了一轮了，但是可能还有没有请求完成')
+
             if self.request_stop:
                 # 则需要发起通知 进行重新拨号
                 # 但是并不知道什么时候网络重新拨号成功呢
@@ -82,21 +93,28 @@ class AllSpider(scrapy.Spider):
                 self.logDao.warn(u'发送重新拨号信号，请等待2分钟会尝试重新抓取')
                 self.request_stop_time = time.time()
                 pass
+            else:
+                # 正常抓好之后，当前跑空线程40分钟，不影响一些还没请求完成的request
+                if sources:
+                    TimerUtil.sleep(40*60)
+                    pass
 
     def parseList(self, response):
         source = response.meta['source']
         wx_account = response.meta['wx_account']
         url = response.meta['url']
         body = response.body
+
+        self.logDao.info(u'开始解析:'+wx_account)
         # 判断被禁止 提示需要重启路由 清理cookie
-        if '您的访问过于频繁' in body:
+        if '您的访问过于频繁' in body or response.status == 302:
             self.request_stop = True
             # 更新状态为更新失败
             self.logDao.warn(u'您的访问过于频繁')
             self.wxSourceDao.updateStatus(wx_account, 'updateFail')
         else:
-            # 进行解析，如果解析失败
-            selector = Selector(text=response.body)
+            # 进行解析
+            selector = Selector(text=body)
             results = selector.xpath('//*[@id="main"]/div[4]/ul/li')
             self.logDao.info(u'列表长度:' + str(len(results)))
             hasCatch = False
@@ -110,6 +128,7 @@ class AllSpider(scrapy.Spider):
                     hasCatch = True
                     break
             if not hasCatch:
+                self.logDao.info(u'没有抓到:' + wx_account_)
                 self.wxSourceDao.updateStatus(wx_account, 'none')
             pass
 

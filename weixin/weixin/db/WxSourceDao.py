@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import random
 import socket
 import time
 
@@ -13,6 +14,7 @@ class WxSourceDao(object):
         self.configPath = os.path.join(os.path.dirname(__file__) + "/config/db_config_inner.ini")
         self.dbConfig = cu.read_db_config(self.configPath)
         self.connector = MySQLConnection(charset='utf8', **self.dbConfig)
+        self.orderType = 'desc'  # 用于判断是升序还是降序
 
     '''
         wx_source
@@ -25,17 +27,62 @@ class WxSourceDao(object):
             is_enable  是否使能
             update_time 更新时间
     '''
-    def queryEnable(self):
+
+    def queryEnable(self, isRandom=False):
         cursor = self.connector.cursor()
+        if self.orderType == "desc":
+            self.orderType = "asc"
+        else:
+            self.orderType = "desc"
+        # """
+        #     select wx_name,wx_account,wx_url,wx_avatar,update_status,is_enable,update_time from wx_source
+        #     where is_enable='1'
+        #     and
+        #     (
+        #         (update_status='last' and round((UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(update_time))/60)>20)
+        #         or
+        #         (update_status='updating' and round((UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(update_time))/60)>20)
+        #         or update_status='updateFail'
+        #         or update_status='none'
+        #     )
+        #     order by id
+        # """
         # 可用的 且（ 更新状态为last且时间大于20分钟/ 更新状态为updating且时间大于20分钟/更新状态为updating/更新状态为none）
         sql_query = "select wx_name,wx_account,wx_url,wx_avatar,update_status,is_enable,update_time from wx_source " \
                     "where is_enable='1' and ((update_status='last' and round((UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(" \
-                    "update_time))/60)>20) or (update_status='updating' and round((UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(" \
-                    "update_time))/60)>20) or update_status='updateFail' or update_status='none') "
+                    "update_time))/60)>40) or (update_status='updating' and round((UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(" \
+                    "update_time))/60)>40) or update_status='updateFail' or update_status='none') order by id "+self.orderType
         cursor.execute(sql_query)
         results = cursor.fetchall()
         cursor.close()
-        return results or []
+        results = results or []
+        # print "sources长度", len(results)
+        if isRandom and results:
+            # 随机排序 防止出现都是请求同一个
+            random.shuffle(results)
+        return results
+
+    def queryWxUrl(self, isRandom=False):
+        """
+        获取wxUrl有值，且是有效的
+        :return:
+        """
+        if self.orderType == "desc":
+            self.orderType = "asc"
+        else:
+            self.orderType = "desc"
+        sql_query = "select wx_name,wx_account,wx_url,wx_avatar,update_status,is_enable,update_time from wx_source " \
+                    "where is_enable='1' and wx_url !='' order by id " + self.orderType
+        cursor = self.connector.cursor()
+        cursor.execute(sql_query)
+        results = cursor.fetchall()
+        cursor.close()
+        results = results or []
+        print "sources长度", len(results)
+        if isRandom and results:
+            # 随机排序 防止出现都是请求同一个
+            random.shuffle(results)
+        return results
 
     def updateStatus(self, wx_account, update_status):
         cursor = self.connector.cursor()
@@ -52,7 +99,7 @@ class WxSourceDao(object):
         cursor = self.connector.cursor()
         sql_query = "update wx_source set update_status='updateFail',update_time=%s where update_status='updating'"
         update_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-        cursor.execute(sql_query, (update_time, ))
+        cursor.execute(sql_query, (update_time,))
         cursor.close()
         self.connector.commit()
 
@@ -73,3 +120,19 @@ class WxSourceDao(object):
 # for i in ipList:
 #     if i != localIP:
 #        print "external IP:%s"%i
+
+# def ww():
+#     while True:
+#         print time.time()
+# def gg():
+#     index = 0
+#     while index < 10:
+#         index += 1
+#         yield ww()
+#         time.sleep(1)
+#         print "循环一次"
+#
+# for i in gg():
+#     print i,'111'
+
+

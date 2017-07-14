@@ -4,23 +4,11 @@
 #
 # See documentation in:
 # http://doc.scrapy.org/en/latest/topics/spider-middleware.html
-import random
 
 from scrapy import signals
 
 
-class RandomUserAgent(object):
-    def __init__(self, agents):
-        self.agents = agents
-
-    @classmethod
-    def from_crawler(cls, crawler):
-        return cls(crawler.settings.getlist('USER_AGENTS'))
-
-    def process_request(self, request, spider):
-        request.headers.setdefault('User-Agent', random.choice(self.agents))
-
-class WeixinSpiderMiddleware(object):
+class TengxunSpiderMiddleware(object):
     # Not all methods need to be defined. If a method is not defined,
     # scrapy acts as if the spider middleware does not modify the
     # passed objects.
@@ -66,18 +54,3 @@ class WeixinSpiderMiddleware(object):
 
     def spider_opened(self, spider):
         spider.logger.info('Spider opened: %s' % spider.name)
-
-
-class ExceptionMiddleware(object):
-    def process_request(self, request, spider):
-        print '#### ExceptionMiddleware process_request'
-
-    def process_response(self, request, response, spider):
-        print '#### ExceptionMiddleware process_response', response.status
-        return response
-        # 这边根据response的status判断是正常的还是ip被禁止了，然后根据类型返回response或者是再次执行request
-
-    def process_exception(self, request, exception, spider):
-        print '#### ExceptionMiddleware process_exception ####', exception
-        # 这边判断 错误类型，根据错误类型返回request，让他继续执行
-        # return request //这个如果返回request，那么异常之后还会继续之前的请求，会出现死循环
