@@ -9,6 +9,7 @@ from scrapy import Selector
 
 from weixin.db.LogDao import LogDao
 from weixin.db.WxSourceDao import WxSourceDao
+from weixin.items import WXDetailItem
 from weixin.util import NetworkUtil
 from weixin.util import TimerUtil
 
@@ -31,27 +32,27 @@ class WXDetailSpider(scrapy.Spider):
     def start_requests(self):
         # unKnow = ["didalive", "HIS_Technology", "CINNO_CreateMore", "ad_helper", "zhongduchongdu"]; 是搜索不到的
         # TODO..加上while可能有问题，有些可能抓不到
-        while True:
+        # while True:
             # 检测网络
             if not NetworkUtil.checkNetWork():
                 # 20s检测一次
                 TimerUtil.sleep(20)
                 self.logDao.warn(u'检测网络不可行')
-                continue
+                # continue
 
             # 检测服务器
             if not NetworkUtil.checkService():
                 # 20s检测一次
                 TimerUtil.sleep(20)
                 self.logDao.warn(u'检测服务器不可行')
-                continue
+                # continue
 
             if self.request_stop:
                 # 拨号生效时间不定，所以需要间隔一段时间再重试
                 timeSpace = time.time() - self.request_stop_time
                 if timeSpace / 60 <= 2:
                     # 当时间间隔小于 2分钟 就不请求
-                    continue
+                    # continue
                     pass
                 else:
                     self.request_stop = False
@@ -78,22 +79,16 @@ class WXDetailSpider(scrapy.Spider):
                 # 跑空线程2秒
                 TimerUtil.sleep(2)
 
-            if sources:
-                self.logDao.info(u'请求了一轮了，但是可能还有没有请求完成')
-
             if self.request_stop:
-                # 则需要发起通知 进行重新拨号
-                # 但是并不知道什么时候网络重新拨号成功呢
-                # 记录当前时间
-                # 充值updating的状态为updateFail
-                self.wxSourceDao.resetUpdating()
-                self.logDao.warn(u'更改更新中状态为updateFail,防止下次取不到')
+                # 需要发起通知 进行重新拨号
                 self.logDao.warn(u'发送重新拨号信号，请等待2分钟会尝试重新抓取')
                 self.request_stop_time = time.time()
                 pass
             else:
                 # 正常抓好之后，当前跑空线程40分钟，不影响一些还没请求完成的request
                 if sources:
+                    self.logDao.info(u'请求了一轮了，但是可能还有没有请求完成，睡一会')
+                    self.logDao.info(u'')
                     TimerUtil.sleep(40 * 60)
                     pass
 
@@ -104,7 +99,7 @@ class WXDetailSpider(scrapy.Spider):
         body = response.body
 
         self.logDao.info(u'开始解析列表:' + wx_account)
-        if "您的访问列表过于频繁" in body or response.status == 302:
+        if "为了保护你的网络安全，请输入验证码" in body or response.status == 302:
             self.request_stop = True
             # 更新状态为更新失败
             self.logDao.warn(u'您的访问列表过于频繁')
@@ -132,20 +127,20 @@ class WXDetailSpider(scrapy.Spider):
                             yield scrapy.Request(url=detailUrl,
                                                  meta={'request_type': 'wx_detail', 'wx_account': wx_account,
                                                        "source": source, "title": title,
-                                                       "detailUrl": detailUrl},
+                                                       "source_url": detailUrl},
                                                  callback=self.parseArticle)
-                            break
                         break
 
     def parseArticle(self, response):
         wx_account = response.meta['wx_account']
         source = response.meta['source']
         title = response.meta['title']
-        detailUrl = response.meta['detailUrl']
+        source_url = response.meta['source_url']
         body = response.body
 
-        self.logDao.info(u'开始解析文章' + wx_account + ':' + title + ':' + detailUrl)
-        self.logDao.info(u'开始解析文章：' + detailUrl)
+        self.logDao.info(u'开始解析文章' + wx_account + ':' + title + ':' + source_url)
+        self.logDao.info(u'开始解析文章：' + source_url)
+        # 系统出错 说明文章无效
         if "您的访问文章过于频繁" in body or response.status == 302:
             self.request_stop = True
             # 更新状态为更新失败
@@ -155,16 +150,43 @@ class WXDetailSpider(scrapy.Spider):
             selector = Selector(text=response.body)
             post_date = selector.xpath('//*[@id="post-date"]/text()').extract_first()
             post_user = selector.xpath('//*[@id="post-user"]/text()').extract_first()
-            content = selector.xpath('//*[@id="js_content"]')
+            page_content = selector.xpath('//*[@id="js_content"]')
             page = selector.xpath('//*[@id="img-content"]')
-
+            # 解析文档中的所有图片url，然后替换成标识
+            image_urls = []
+            imgs = selector.xpath('//img[@class!="qr_code_pc_img"]')  # /@src | //img/@data-src
+            for img in imgs:
+                # 图片可能放在src 或者data-src
+                image_url = img.xpath('@src | @data-src').extract_first()
+                if image_url and image_url.startswith('http'):
+                    self.logDao.info(u'得到图片：' + image_url)
+                    m2 = hashlib.md5()
+                    m2.update(image_url)
+                    image_hash = m2.hexdigest()
+                    image_urls.append({
+                        'url': image_url,
+                        'hash': image_hash
+                    })
+                    # 替换url为hash，然后替换data-src为src
+                    page_content = page_content.replace(image_url, image_hash).replace('data-src', 'src')
+                    page = page.replace(image_url, image_hash).replace('data-src', 'src')
             self.logDao.info(wx_account + u'得到文章：' + title + ":" + post_date + ':' + post_user)
-            self.logDao.info(u'得到文章：' + detailUrl)
+            self.logDao.info(u'得到文章：' + source_url)
             m2 = hashlib.md5()
             m2.update(title.encode('utf8'))
             title_hash = m2.hexdigest()
             self.saveFile(title_hash, page.extract_first())
-            # TODO...差数据库
+
+            # 存数据库
+            item = WXDetailItem()
+            item['post_date'] = post_date
+            item['post_user'] = post_user
+            item['page_content'] = page_content
+            item['title'] = title
+            item['wx_account'] = wx_account
+            item['source_url'] = source_url
+            item['image_urls'] = image_urls
+            return item
 
     def saveFile(self, title, content):
         filename = 'html/%s.html' % title

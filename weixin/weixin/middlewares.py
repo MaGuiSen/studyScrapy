@@ -79,7 +79,7 @@ class ExceptionMiddleware(object):
         # 这边根据response的status判断是正常的还是ip被禁止了，然后根据类型返回response或者是再次执行request
 
     def process_exception(self, request, exception, spider):
-        print '#### ExceptionMiddleware process_exception ####', exception
+        print 'process_exception', exception
         # {'request_type': 'wx_source', 'url': newUrl,
         #  'wx_account': wx_account, 'source': source}
         request_type = request.meta['request_type']

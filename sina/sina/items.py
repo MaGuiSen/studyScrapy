@@ -15,11 +15,11 @@ class SinaItem(scrapy.Item):
 
 
 class SinaContentItem(scrapy.Item):
-    channelName = scrapy.Field()
-    url = scrapy.Field()
-    title = scrapy.Field()
-    publishTime = scrapy.Field()
-    fromSource = scrapy.Field()
-    contents = scrapy.Field()  # 一个数组
+    page_content = scrapy.Field()  # 一个数组
     image_urls = scrapy.Field()  # [{'url':'', 'hash':''}]
-    # image_urls和images是固定的
+    title = scrapy.Field()
+    source_url = scrapy.Field()
+    post_date = scrapy.Field()
+    channel_name = scrapy.Field()
+    post_user = scrapy.Field()
+    tags = scrapy.Field()

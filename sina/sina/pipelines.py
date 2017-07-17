@@ -8,13 +8,12 @@
 import hashlib
 import json
 
-import MySQLdb
+import time
 from mysql.connector import MySQLConnection
-from scrapy.exceptions import DropItem
 from scrapy import Request
-from scrapy.pipelines.files import FilesPipeline
 from scrapy.pipelines.images import ImagesPipeline
-from twisted.enterprise import adbapi
+
+from sina.items import SinaContentItem
 
 
 class SinaPipeline(object):
@@ -43,20 +42,38 @@ class MysqlPipeline(object):
         self.connector = connector
 
     def process_item(self, item, spider):
-        print '............................................db save ..............'
         cursor = self.connector.cursor()
-        sql = "insert into sina_detail (title,contents,image_urls,fromSource,publishTime,channelName,url) values(%s,%s,%s,%s,%s,%s,%s)"
-        cursor.execute(sql, (item['title'],
-                             json.dumps(item['contents'], encoding="utf8", ensure_ascii=False),
-                             json.dumps(item['image_urls'], encoding="utf8", ensure_ascii=False),
-                             item['fromSource'],
-                             item['publishTime'],
-                             item['channelName'],
-                             item['url']))
+        if isinstance(item, SinaContentItem):
+            # 如果存在，则不做处理
+            if not self.checkDetailExist(cursor, item['title']):
+                spider.logDao.info(u'存新浪详情：' + item['title'])
+                sql = "insert into sina_detail (channel_name, tags, post_date,post_user,page_content,title,source_url,image_urls,"\
+                      "update_time) values(%s,%s,%s,%s,%s,%s,%s,%s,%s) "
+                update_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+                cursor.execute(sql, (item['channel_name'],
+                                     item['tags'],
+                                     item['post_date'],
+                                     item['post_user'],
+                                     json.dumps(item['page_content'], encoding="utf8", ensure_ascii=False),
+                                     item['title'],
+                                     item['source_url'],
+                                     json.dumps(item['image_urls'], encoding="utf8", ensure_ascii=False),
+                                     update_time))
+                spider.logDao.info(u'存新浪详情：' + item['title'] + u'成功')
+        else:
+            pass
         cursor.close()
-        print 'SaveDb'
         self.connector.commit()
         return item
+
+    def checkDetailExist(self, cursor,  title):
+        sql_query = 'select title from sina_detail where title=%s'
+        cursor.execute(sql_query, (title, ))
+        results = cursor.fetchall()
+        if results:
+            return True
+        else:
+            return False
 
     def close_spider(self, spider):
         self.connector.commit()

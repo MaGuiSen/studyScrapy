@@ -2,4 +2,3 @@
 from scrapy import cmdline
 
 cmdline.execute("scrapy crawl sina  -s HTTPCACHE_ENABLED=0  ".split())
-# cmdline.execute("scrapy crawl list  -s HTTPCACHE_ENABLED=0  ".split())

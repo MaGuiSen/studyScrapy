@@ -57,10 +57,10 @@ class MysqlPipeline(object):
                                      item['source_url'],
                                      json.dumps(item['image_urls'], encoding="utf8", ensure_ascii=False),
                                      update_time))
+                spider.logDao.info(u'存微信详情：' + item['title'] + u'成功')
         else:
             pass
         cursor.close()
-        spider.logDao.info(u'存微信详情：' + item['title']+ '成功')
         self.connector.commit()
         return item
 

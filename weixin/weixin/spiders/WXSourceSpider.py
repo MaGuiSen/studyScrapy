@@ -28,27 +28,27 @@ class WXSourceSpider(scrapy.Spider):
 
     def start_requests(self):
         # TODO..加上while可能有问题，有些抓不到
-        while True:
+        # while True:
             # 检测网络
             if not NetworkUtil.checkNetWork():
                 # 20s检测一次
                 TimerUtil.sleep(20)
                 self.logDao.warn(u'检测网络不可行')
-                continue
+                # continue
 
             # 检测服务器
             if not NetworkUtil.checkService():
                 # 20s检测一次
                 TimerUtil.sleep(20)
                 self.logDao.warn(u'检测服务器不可行')
-                continue
+                # continue
 
             if self.request_stop:
                 # 拨号生效时间不定，所以需要间隔一段时间再重试
                 timeSpace = time.time() - self.request_stop_time
                 if timeSpace / 60 <= 2:
                     # 当时间间隔小于 2分钟 就不请求
-                    continue
+                    # continue
                     pass
                 else:
                     self.request_stop = False
@@ -82,20 +82,20 @@ class WXSourceSpider(scrapy.Spider):
             if sources:
                 self.logDao.info(u'抓了一轮了，但是可能还有没有请求完成')
 
-            # if self.request_stop:
-            #     # 则需要发起通知 进行重新拨号
-            #     # 但是并不知道什么时候网络重新拨号成功呢
-            #     # 记录当前时间
-            #     # 充值updating的状态为updateFail
-            #     self.wxSourceDao.resetUpdating()
-            #     self.logDao.warn(u'更改更新中状态为updateFail,防止下次取不到')
-            #     self.logDao.warn(u'发送重新拨号信号，请等待2分钟会尝试重新抓取')
-            #     self.request_stop_time = time.time()
-            # else:
-            #     # 正常抓好之后，当前跑空线程40分钟，不影响一些还没请求完成的request
-            #     if sources:
-            #         self.logDao.info(u'抓了一轮了，睡40分钟的空线程')
-            #         TimerUtil.sleep(40*60)
+            if self.request_stop:
+                # 则需要发起通知 进行重新拨号
+                # 但是并不知道什么时候网络重新拨号成功呢
+                # 记录当前时间
+                # 充值updating的状态为updateFail
+                self.wxSourceDao.resetUpdating()
+                self.logDao.warn(u'更改更新中状态为updateFail,防止下次取不到')
+                self.logDao.warn(u'发送重新拨号信号，请等待2分钟会尝试重新抓取')
+                self.request_stop_time = time.time()
+            else:
+                # 正常抓好之后，当前跑空线程40分钟，不影响一些还没请求完成的request
+                if sources:
+                    self.logDao.info(u'抓了一轮了，睡40分钟的空线程')
+                    TimerUtil.sleep(40*60)
 
     def parseList(self, response):
         source = response.meta['source']
