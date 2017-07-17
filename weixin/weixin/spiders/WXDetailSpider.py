@@ -15,13 +15,13 @@ from weixin.util import TimerUtil
 isEnd = False
 
 
-class WXSpider(scrapy.Spider):
-    name = 'wechat'
+class WXDetailSpider(scrapy.Spider):
+    name = 'wx_detail'
     download_delay = 20  # 基础间隔 0.5*download_delay --- 1.5*download_delays之间的随机数
     handle_httpstatus_list = [301, 302, 204, 206, 403, 404, 500]  # 可以处理重定向及其他错误码导致的 页面无法获取解析的问题
 
     def __init__(self, name=None, **kwargs):
-        super(WXSpider, self).__init__(name=None, **kwargs)
+        super(WXDetailSpider, self).__init__(name=None, **kwargs)
         self.count = 0
         self.wxSourceDao = WxSourceDao()
         self.request_stop = False
@@ -30,7 +30,7 @@ class WXSpider(scrapy.Spider):
 
     def start_requests(self):
         # unKnow = ["didalive", "HIS_Technology", "CINNO_CreateMore", "ad_helper", "zhongduchongdu"]; 是搜索不到的
-        # TODO..加上while可能有问题，有些抓不到
+        # TODO..加上while可能有问题，有些可能抓不到
         while True:
             # 检测网络
             if not NetworkUtil.checkNetWork():
@@ -72,7 +72,8 @@ class WXSpider(scrapy.Spider):
                 self.logDao.warn(u'进行抓取:' + newUrl)
                 # TODO..no more duplicates will be shown (see DUPEFILTER_DEBUG to show all duplicates)
                 yield scrapy.Request(url=newUrl,
-                                     meta={'url': newUrl, 'wx_account': wx_account, 'source': source},
+                                     meta={'request_type': 'wx_page_list', 'url': newUrl,
+                                           'wx_account': wx_account, 'source': source},
                                      callback=self.parseArticleList, dont_filter=True)
                 # 跑空线程2秒
                 TimerUtil.sleep(2)
@@ -129,7 +130,8 @@ class WXSpider(scrapy.Spider):
                             detailUrl = detailUrl.replace("amp;", "")
                             self.logDao.info(u'抓取' + wx_account + ':' + title + ':' + detailUrl)
                             yield scrapy.Request(url=detailUrl,
-                                                 meta={'wx_account': wx_account, "source": source, "title": title,
+                                                 meta={'request_type': 'wx_detail', 'wx_account': wx_account,
+                                                       "source": source, "title": title,
                                                        "detailUrl": detailUrl},
                                                  callback=self.parseArticle)
                             break

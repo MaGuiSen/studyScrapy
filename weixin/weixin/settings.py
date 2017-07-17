@@ -14,6 +14,13 @@ BOT_NAME = 'weixin'
 SPIDER_MODULES = ['weixin.spiders']
 NEWSPIDER_MODULE = 'weixin.spiders'
 
+#Mysql数据库的配置信息
+MYSQL_HOST = 'localhost'
+MYSQL_DBNAME = 'scrapy'         #数据库名字，请修改
+MYSQL_USER = 'root'             #数据库账号，请修改
+MYSQL_PASSWD = '123456'         #数据库密码，请修改
+
+MYSQL_PORT = 3306               #数据库端口，在dbhelper中使用
 
 USER_AGENTS = [
     "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; AcooBrowser; .NET CLR 1.1.4322; .NET CLR 2.0.50727)",
@@ -35,7 +42,7 @@ USER_AGENTS = [
 ]
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
-#USER_AGENT = 'weixin (+http://www.yourdomain.com)'
+# USER_AGENT = 'weixin (+http://www.yourdomain.com)'
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False

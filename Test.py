@@ -14,16 +14,42 @@ value = """
 
 """
 
-p1 = re.compile('\s*document.*;\s*')
-p2 = re.compile('\s*var\s*biz\s*=.*;')
-p3 = re.compile('\s*var\s*src\s*=.*;')
-p4 = re.compile('\s*var\s*ver\s*=.*;')
-p5 = re.compile('\s*var\s*timestamp\s*=.*;')
-p6 = re.compile('\s*var\s*signature\s*=.*;')
-p7 = re.compile('\s*var\s*name\s*=.*;')
-p8 = re.compile('var\s*msgList\s*=.*;')
+# p1 = re.compile('\s*document.*;\s*')
+# p2 = re.compile('\s*var\s*biz\s*=.*;')
+# p3 = re.compile('\s*var\s*src\s*=.*;')
+# p4 = re.compile('\s*var\s*ver\s*=.*;')
+# p5 = re.compile('\s*var\s*timestamp\s*=.*;')
+# p6 = re.compile('\s*var\s*signature\s*=.*;')
+# p7 = re.compile('\s*var\s*name\s*=.*;')
+# p8 = re.compile('var\s*msgList\s*=.*;')
+#
+# matchList = p8.findall(value)
+# for match in matchList:
+#     match = match.lstrip("var msgList = ")
+#     print match
 
-matchList = p8.findall(value)
-for match in matchList:
-    match = match.lstrip("var msgList = ")
-    print match
+import time
+
+
+def sleep(second=1):
+    """
+    自定义睡眠，防止线程关闭
+    """
+    startSeconds = int(time.time())
+    while True:
+        endSeconds = int(time.time())
+        if (endSeconds - startSeconds) >= second:
+            break
+
+def dd():
+    while True:
+        list = [1, 2,3,4,5]
+        for l in list:
+            yield l
+            sleep(2)
+
+for i in dd():
+    print i
+
+
+

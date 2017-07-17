@@ -12,15 +12,13 @@ from weixin.util import TimerUtil
 isEnd = False
 
 
-class AllSpider(scrapy.Spider):
-    name = 'all'
-    # user_agent = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.221 Safari/537.36 SE 2.X MetaSr 1.0'
-    # headers = {'User-Agent': user_agent}
+class WXSourceSpider(scrapy.Spider):
+    name = 'wx_source'
     download_delay = 20  # 基础间隔 0.5*download_delay --- 1.5*download_delays之间的随机数
     handle_httpstatus_list = [301, 302, 204, 206, 403, 404, 500]  # 可以处理重定向及其他错误码导致的 页面无法获取解析的问题
 
     def __init__(self, name=None, **kwargs):
-        super(AllSpider, self).__init__(name=None, **kwargs)
+        super(WXSourceSpider, self).__init__(name=None, **kwargs)
         self.count = 0
         self.wxSourceDao = WxSourceDao()
         self.request_stop = False
@@ -75,7 +73,8 @@ class AllSpider(scrapy.Spider):
                 self.logDao.warn(u'进行抓取:'+newUrl)
                 # TODO..no more duplicates will be shown (see DUPEFILTER_DEBUG to show all duplicates)
                 yield scrapy.Request(url=newUrl,
-                                     meta={'url': newUrl, 'wx_account': wx_account, 'source': source},
+                                     meta={'request_type': 'wx_source', 'url': newUrl,
+                                           'wx_account': wx_account, 'source': source},
                                      callback=self.parseList, dont_filter=True)
                 # 跑空线程2秒
                 TimerUtil.sleep(2)
@@ -83,21 +82,20 @@ class AllSpider(scrapy.Spider):
             if sources:
                 self.logDao.info(u'抓了一轮了，但是可能还有没有请求完成')
 
-            if self.request_stop:
-                # 则需要发起通知 进行重新拨号
-                # 但是并不知道什么时候网络重新拨号成功呢
-                # 记录当前时间
-                # 充值updating的状态为updateFail
-                self.wxSourceDao.resetUpdating()
-                self.logDao.warn(u'更改更新中状态为updateFail,防止下次取不到')
-                self.logDao.warn(u'发送重新拨号信号，请等待2分钟会尝试重新抓取')
-                self.request_stop_time = time.time()
-                pass
-            else:
-                # 正常抓好之后，当前跑空线程40分钟，不影响一些还没请求完成的request
-                if sources:
-                    TimerUtil.sleep(40*60)
-                    pass
+            # if self.request_stop:
+            #     # 则需要发起通知 进行重新拨号
+            #     # 但是并不知道什么时候网络重新拨号成功呢
+            #     # 记录当前时间
+            #     # 充值updating的状态为updateFail
+            #     self.wxSourceDao.resetUpdating()
+            #     self.logDao.warn(u'更改更新中状态为updateFail,防止下次取不到')
+            #     self.logDao.warn(u'发送重新拨号信号，请等待2分钟会尝试重新抓取')
+            #     self.request_stop_time = time.time()
+            # else:
+            #     # 正常抓好之后，当前跑空线程40分钟，不影响一些还没请求完成的request
+            #     if sources:
+            #         self.logDao.info(u'抓了一轮了，睡40分钟的空线程')
+            #         TimerUtil.sleep(40*60)
 
     def parseList(self, response):
         source = response.meta['source']
@@ -131,6 +129,3 @@ class AllSpider(scrapy.Spider):
                 self.logDao.info(u'没有抓到:' + wx_account_)
                 self.wxSourceDao.updateStatus(wx_account, 'none')
             pass
-
-
-AllSpider().start_requests()

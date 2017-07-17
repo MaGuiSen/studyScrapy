@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import urllib
 
 
 def checkNetWork():
@@ -6,7 +7,11 @@ def checkNetWork():
         检测网络
     :return:boolean
     '''
-    return True
+    try:
+        response = urllib.urlopen('https://www.baidu.com')
+        return response.code == 200
+    except Exception:
+        return False
 
 
 def checkService():
@@ -15,3 +20,5 @@ def checkService():
     :return:boolean
     '''
     return True
+
+    # print checkNetWork()
