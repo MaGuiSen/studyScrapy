@@ -25,7 +25,7 @@ class TXDetailSpider(scrapy.Spider):
         self.count = 0
         self.request_stop = False
         self.request_stop_time = 0
-        self.logDao = LogDao('tx_list_detail')
+        self.logDao = LogDao('tengxun_list_detail')
 
     def start_requests(self):
         # while True:
@@ -47,7 +47,7 @@ class TXDetailSpider(scrapy.Spider):
             newUrl = 'http://tech.qq.com/l/scroll.htm'
             self.logDao.warn(u'进行抓取列表:' + newUrl)
             yield scrapy.Request(url=newUrl,
-                                 meta={'request_type': 'tx_page_list', 'url': newUrl},
+                                 meta={'request_type': 'tengxun_page_list', 'url': newUrl},
                                  callback=self.parseArticleList, dont_filter=True)
 
     # TODO...还没有遇到被禁止的情况
@@ -65,7 +65,7 @@ class TXDetailSpider(scrapy.Spider):
             post_date = time.strftime('%Y', time.localtime(time.time())) + u'年' + post_date
             self.logDao.info(u'抓取文章' + title + ':' + post_date + ':' + source_url)
             yield scrapy.Request(url=source_url,
-                                 meta={'request_type': 'tx_detail', "title": title, 'post_date': post_date,
+                                 meta={'request_type': 'tengxun_detail', "title": title, 'post_date': post_date,
                                        "source_url": source_url},
                                  callback=self.parseArticle)
 

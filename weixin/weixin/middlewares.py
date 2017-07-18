@@ -83,16 +83,16 @@ class ExceptionMiddleware(object):
         # {'request_type': 'wx_source', 'url': newUrl,
         #  'wx_account': wx_account, 'source': source}
         request_type = request.meta['request_type']
-        if request_type == 'wx_source':
+        if request_type == 'weixin_source':
             # 只有在数据源请求发生错误才将当前数据源状态更新为失败
             wx_account = request.meta['wx_account']
             spider.wxSourceDao.updateStatus(wx_account, 'updateFail')
             spider.logDao.info(u'数据源抓取异常：' + wx_account + ':' + exception.message)
-        if request_type == 'wx_page_list':
+        if request_type == 'weixin_page_list':
             # 不做处理，让其自动结束
             url = request.meta['url']
             spider.logDao.info(u'列表抓取异常：' + url + ':' + exception.message)
-        if request_type == 'wx_detail':
+        if request_type == 'weixin_detail':
             # 不做处理，让其自动结束
             detailUrl = request.meta['detailUrl']
             spider.logDao.info(u'详情抓取异常：' + detailUrl + ':' + exception.message)

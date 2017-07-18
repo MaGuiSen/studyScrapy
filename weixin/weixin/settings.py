@@ -56,5 +56,5 @@ ITEM_PIPELINES = {
    'weixin.pipelines.MysqlPipeline': 40,
 }
 
-IMAGES_STORE = 'C:\\gsma\\pythonWorkSpace\\studyScrapy\\weixin\\img'
-FILES_STORE = 'C:\\gsma\\pythonWorkSpace\\studyScrapy\\weixin\\file'
+IMAGES_STORE = 'C:\\gsma\\pythonWorkSpace\\studyScrapy\\res\\img\\weixin'
+FILES_STORE = 'C:\\gsma\\pythonWorkSpace\\studyScrapy\\res\\file\\weixin'

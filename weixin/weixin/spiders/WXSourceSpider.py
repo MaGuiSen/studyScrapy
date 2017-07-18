@@ -25,7 +25,7 @@ class WXSourceSpider(scrapy.Spider):
         self.request_stop = False
         self.currIp = ''
         self.request_stop_time = 0
-        self.logDao = LogDao('wx_source_catch')
+        self.logDao = LogDao('weixin_source_catch')
 
     def start_requests(self):
         # TODO..加上while可能有问题，有些抓不到
@@ -74,7 +74,7 @@ class WXSourceSpider(scrapy.Spider):
                 self.logDao.warn(u'进行抓取:'+newUrl)
                 # TODO..no more duplicates will be shown (see DUPEFILTER_DEBUG to show all duplicates)
                 yield scrapy.Request(url=newUrl,
-                                     meta={'request_type': 'wx_source', 'url': newUrl,
+                                     meta={'request_type': 'weixin_source', 'url': newUrl,
                                            'wx_account': wx_account, 'source': source},
                                      callback=self.parseList, dont_filter=True)
                 # 跑空线程2秒

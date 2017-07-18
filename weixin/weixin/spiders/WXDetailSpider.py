@@ -29,7 +29,7 @@ class WXDetailSpider(scrapy.Spider):
         self.wxSourceDao = WxSourceDao()
         self.request_stop = False
         self.request_stop_time = 0
-        self.logDao = LogDao('wx_list_detail')
+        self.logDao = LogDao('weixin_list_detail')
 
     def start_requests(self):
         # unKnow = ["didalive", "HIS_Technology", "CINNO_CreateMore", "ad_helper", "zhongduchongdu"]; 是搜索不到的
@@ -75,7 +75,7 @@ class WXDetailSpider(scrapy.Spider):
                 self.logDao.warn(u'进行抓取:' + newUrl)
                 # TODO..no more duplicates will be shown (see DUPEFILTER_DEBUG to show all duplicates)
                 yield scrapy.Request(url=newUrl,
-                                     meta={'request_type': 'wx_page_list', 'url': newUrl,
+                                     meta={'request_type': 'weixin_page_list', 'url': newUrl,
                                            'wx_account': wx_account, 'source': source},
                                      callback=self.parseArticleList, dont_filter=True)
                 # 跑空线程2秒
@@ -127,7 +127,7 @@ class WXDetailSpider(scrapy.Spider):
                             detailUrl = detailUrl.replace("amp;", "")
                             self.logDao.info(u'抓取' + wx_account + ':' + title + ':' + detailUrl)
                             yield scrapy.Request(url=detailUrl,
-                                                 meta={'request_type': 'wx_detail', 'wx_account': wx_account,
+                                                 meta={'request_type': 'weixin_detail', 'wx_account': wx_account,
                                                        "source": source, "title": title,
                                                        "source_url": detailUrl},
                                                  callback=self.parseArticle)

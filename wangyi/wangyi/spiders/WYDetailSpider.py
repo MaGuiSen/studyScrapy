@@ -27,7 +27,7 @@ class WYDetailSpider(scrapy.Spider):
         self.count = 0
         self.request_stop = False
         self.request_stop_time = 0
-        self.logDao = LogDao('wy_list_detail')
+        self.logDao = LogDao('wangyi_list_detail')
 
     def start_requests(self):
         # while True:
@@ -49,83 +49,90 @@ class WYDetailSpider(scrapy.Spider):
             newUrl = 'http://tech.163.com/special/00094IHV/news_json.js?' + str(random.uniform(0, 1))
             self.logDao.warn(u'进行抓取列表:' + newUrl)
             yield scrapy.Request(url=newUrl,
-                                 meta={'request_type': 'wy_page_list', 'url': newUrl},
+                                 meta={'request_type': 'wangyi_page_list', 'url': newUrl},
                                  callback=self.parseArticleList, dont_filter=True)
 
     # TODO...还没有遇到被禁止的情况
     def parseArticleList(self, response):
         url = response.meta['url']
         body = response.body.decode('gbk')
-        self.logDao.info(u'开始解析列表')
-        body = body.lstrip('var data=').rstrip(';')
-        # 格式化
-        articles = demjson.decode(body) or {}
-        articles = articles['news'] or []
-        for article_ins in articles:
-            for article in article_ins:
-                source_url = article['l']
-                title = article['t']
-                post_date = article['p']
-                self.logDao.info(u'抓取文章' + title + ':' + post_date + ':' + source_url)
-                yield scrapy.Request(url=source_url,
-                                     meta={'request_type': 'wy_detail', "title": title, 'post_date': post_date,
-                                           "source_url": source_url},
-                                     callback=self.parseArticle)
+
+        if False:
+            self.logDao.info(u'访问过多被禁止')
+        else:
+            self.logDao.info(u'开始解析列表')
+            body = body.lstrip('var data=').rstrip(';')
+            # 格式化
+            articles = demjson.decode(body) or {}
+            articles = articles['news'] or []
+            for article_ins in articles:
+                for article in article_ins:
+                    source_url = article['l']
+                    title = article['t']
+                    post_date = article['p']
+                    self.logDao.info(u'抓取文章' + title + ':' + post_date + ':' + source_url)
+                    yield scrapy.Request(url=source_url,
+                                         meta={'request_type': 'wangyi_detail', "title": title, 'post_date': post_date,
+                                               "source_url": source_url},
+                                         callback=self.parseArticle)
 
     def parseArticle(self, response):
-        title = response.meta['title']
-        post_date = response.meta['post_date']
-        source_url = response.meta['source_url']
-        body = response.body.decode('gbk')
-        self.logDao.info(u'开始解析文章:' + title + ':' + post_date + ':' + source_url)
+        if False:
+            self.logDao.info(u'访问过多被禁止')
+        else:
+            title = response.meta['title']
+            post_date = response.meta['post_date']
+            source_url = response.meta['source_url']
+            body = response.body.decode('gbk')
+            self.logDao.info(u'开始解析文章:' + title + ':' + post_date + ':' + source_url)
 
-        selector = Selector(text=body)
-        post_user = selector.xpath('//*[@id="ne_article_source"]/text()').extract_first()
-        page_content = selector.xpath('//*[@id="epContentLeft"]/div[@class="post_body"]')
+            selector = Selector(text=body)
+            post_user = selector.xpath('//*[@id="ne_article_source"]/text()').extract_first()
+            page_content = selector.xpath('//*[@id="epContentLeft"]/div[@class="post_body"]')
 
-        # 解析文档中的所有图片url，然后替换成标识
-        image_urls = []
-        imgs = page_content.xpath('descendant::img')  # /@src | //img/@data-src
-        page_content = page_content.extract_first(default='').replace('\t', '').replace('\n', '')
-        for img in imgs:
-            # 图片可能放在src 或者data-src
-            image_url = img.xpath('@src').extract_first()
-            if image_url and image_url.startswith('http'):
-                self.logDao.info(u'得到图片：' + image_url)
-                m2 = hashlib.md5()
-                m2.update(image_url)
-                image_hash = m2.hexdigest()
-                image_urls.append({
-                    'url': image_url,
-                    'hash': image_hash
-                })
-                # 替换url为hash，然后替换data-src为src
-                page_content = page_content.replace(image_url, image_hash)
+            # 解析文档中的所有图片url，然后替换成标识
+            image_urls = []
+            imgs = page_content.xpath('descendant::img')  # /@src | //img/@data-src
+            page_content = page_content.extract_first(default='').replace('\t', '').replace('\n', '')
+            for img in imgs:
+                # 图片可能放在src 或者data-src
+                image_url = img.xpath('@src').extract_first()
+                if image_url and image_url.startswith('http'):
+                    self.logDao.info(u'得到图片：' + image_url)
+                    m2 = hashlib.md5()
+                    m2.update(image_url)
+                    image_hash = m2.hexdigest()
+                    image_urls.append({
+                        'url': image_url,
+                        'hash': image_hash
+                    })
+                    # 替换url为hash，然后替换data-src为src
+                    page_content = page_content.replace(image_url, image_hash)
 
-        m2 = hashlib.md5()
-        m2.update(source_url.encode('utf8'))
-        urlHash = m2.hexdigest()
+            m2 = hashlib.md5()
+            m2.update(source_url.encode('utf8'))
+            urlHash = m2.hexdigest()
 
-        main = {
-            'title': title,
-            'post_date': post_date,
-            'post_user': post_user,
-            'page_content': page_content,
-            'tags': '',
-            'channel_name': ''
-        }
-        self.saveFile(urlHash, json.dumps(main, encoding="utf8", ensure_ascii=False))
+            main = {
+                'title': title,
+                'post_date': post_date,
+                'post_user': post_user,
+                'page_content': page_content,
+                'tags': '',
+                'channel_name': ''
+            }
+            self.saveFile(urlHash, json.dumps(main, encoding="utf8", ensure_ascii=False))
 
-        contentItem = WYContentItem()
-        contentItem['channel_name'] = ''
-        contentItem['source_url'] = source_url
-        contentItem['title'] = title
-        contentItem['post_date'] = post_date
-        contentItem['post_user'] = post_user
-        contentItem['image_urls'] = image_urls
-        contentItem['page_content'] = page_content
-        contentItem['tags'] = ''
-        return contentItem
+            contentItem = WYContentItem()
+            contentItem['channel_name'] = ''
+            contentItem['source_url'] = source_url
+            contentItem['title'] = title
+            contentItem['post_date'] = post_date
+            contentItem['post_user'] = post_user
+            contentItem['image_urls'] = image_urls
+            contentItem['page_content'] = page_content
+            contentItem['tags'] = ''
+            return contentItem
 
     def saveFile(self, title, content):
         filename = 'html/%s.json' % title
