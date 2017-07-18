@@ -23,7 +23,11 @@
     <autoscroll-to-editor value="false" />
     <autoscroll-from-editor value="true" />
     <show-object-properties value="true" />
-    <loaded-nodes />
+    <loaded-nodes>
+      <connection connection-id="a3a4daaf-a78e-4dc5-91f7-859467372d3d">
+        <schema name="scrapy" object-types="column, constraint, function, index, procedure, table, dataset trigger, view" />
+      </connection>
+    </loaded-nodes>
   </component>
   <component name="DBNavigator.Project.DatabaseConsoleManager">
     <connection id="a3a4daaf-a78e-4dc5-91f7-859467372d3d">
@@ -31,7 +35,7 @@
     </connection>
   </component>
   <component name="DBNavigator.Project.DatasetFilterManager">
-    <filter-list connection-id="a3a4daaf-a78e-4dc5-91f7-859467372d3d" dataset="scrapy.sina_detail" active-filter-id="afe3a714-d49f-4775-a38c-ea731a2bace8">
+    <filter-list connection-id="a3a4daaf-a78e-4dc5-91f7-859467372d3d" dataset="scrapy.sina_detail" active-filter-id="EMPTY_FILTER">
       <filter id="87113a3c-bfed-4aa8-aef7-8ee0bef0549e" name="Filter 1" temporary="false" custom-name="false" type="basic" join-type="AND" />
       <filter id="afe3a714-d49f-4775-a38c-ea731a2bace8" name="[]" temporary="false" custom-name="false" type="basic" join-type="AND">
         <condition column="image_urls" operator="=" value="[]" active="true" />

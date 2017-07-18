@@ -54,12 +54,12 @@ class MysqlPipeline(object):
                                      item['tags'],
                                      item['post_date'],
                                      item['post_user'],
-                                     json.dumps(item['page_content'], encoding="utf8", ensure_ascii=False),
+                                     item['page_content'],
                                      item['title'],
                                      item['source_url'],
                                      json.dumps(item['image_urls'], encoding="utf8", ensure_ascii=False),
                                      update_time))
-                spider.logDao.info(u'存新浪详情：' + item['title'] + u'成功')
+                spider.logDao.info(u'存新浪详情：' + item['title'] + u'  成功')
         else:
             pass
         cursor.close()

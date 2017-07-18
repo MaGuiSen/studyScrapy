@@ -168,8 +168,8 @@ class WXDetailSpider(scrapy.Spider):
                         'hash': image_hash
                     })
                     # 替换url为hash，然后替换data-src为src
-                    page_content = page_content.replace(image_url, image_hash).replace('data-src', 'src')
-                    page = page.replace(image_url, image_hash).replace('data-src', 'src')
+                    page_content = page_content.extract_first(default='').replace(image_url, image_hash).replace('data-src', 'src')
+                    page = page.extract_first(default='').replace(image_url, image_hash).replace('data-src', 'src')
             self.logDao.info(wx_account + u'得到文章：' + title + ":" + post_date + ':' + post_user)
             self.logDao.info(u'得到文章：' + source_url)
             m2 = hashlib.md5()
