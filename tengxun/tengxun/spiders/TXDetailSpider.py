@@ -11,12 +11,10 @@ from libMe.util import NetworkUtil
 from libMe.util import TimerUtil
 from ..items import TXContentItem
 
-isEnd = False
-
 
 # 60s/120s/300s 刷新一次
 class TXDetailSpider(scrapy.Spider):
-    name = 'tx_detail'
+    name = 'tengxun_detail'
     download_delay = 5  # 基础间隔 0.5*download_delay --- 1.5*download_delays之间的随机数
     handle_httpstatus_list = [301, 302, 204, 206, 403, 404, 500]  # 可以处理重定向及其他错误码导致的 页面无法获取解析的问题
 

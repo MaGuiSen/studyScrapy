@@ -15,9 +15,6 @@ from libMe.util import NetworkUtil
 from libMe.util import TimerUtil
 
 
-isEnd = False
-
-
 class WXDetailSpider(scrapy.Spider):
     name = 'wx_detail'
     download_delay = 20  # 基础间隔 0.5*download_delay --- 1.5*download_delays之间的随机数
@@ -91,23 +88,24 @@ class WXDetailSpider(scrapy.Spider):
                 if sources:
                     self.logDao.info(u'请求了一轮了，但是可能还有没有请求完成，睡一会')
                     self.logDao.info(u'')
-                    TimerUtil.sleep(40 * 60)
+                    # TimerUtil.sleep(40 * 60)
                     pass
 
     def parseArticleList(self, response):
         source = response.meta['source']
         wx_account = response.meta['wx_account']
         url = response.meta['url']
-        body = response.body
-
-        self.logDao.info(u'开始解析列表:' + wx_account)
-        if "为了保护你的网络安全，请输入验证码" in body or response.status == 302:
+        body = response.body.decode('utf8')
+        selector = Selector(text=body)
+        title = selector.xpath('//title/text()').extract_first('').strip(u' ')
+        isN = u"请输入验证码" == title
+        if isN or response.status == 302:
             self.request_stop = True
             # 更新状态为更新失败
             self.logDao.warn(u'您的访问列表过于频繁')
         else:
+            self.logDao.info(u'开始解析列表:' + wx_account)
             # 进行解析
-            selector = Selector(text=body)
             articleJS = selector.xpath('//script/text()').extract()
             for js in articleJS:
                 if 'var msgList = ' in js:

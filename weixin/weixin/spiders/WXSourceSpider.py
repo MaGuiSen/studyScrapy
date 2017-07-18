@@ -10,8 +10,6 @@ from libMe.db.LogDao import LogDao
 from libMe.util import NetworkUtil
 from libMe.util import TimerUtil
 
-isEnd = False
-
 
 class WXSourceSpider(scrapy.Spider):
     name = 'wx_source'
@@ -55,7 +53,6 @@ class WXSourceSpider(scrapy.Spider):
                     self.request_stop = False
 
             # 进行爬虫
-            # TODO..清除cookie
             # 获取源  可用的，且（是更新失败的，或者最新的同时更新时间跟当前相比大于40分钟）
             sources = self.wxSourceDao.queryEnable(isRandom=True)
 
@@ -103,15 +100,14 @@ class WXSourceSpider(scrapy.Spider):
         wx_account = response.meta['wx_account']
         url = response.meta['url']
         body = response.body
-
-        self.logDao.info(u'开始解析:'+wx_account)
         # 判断被禁止 提示需要重启路由 清理cookie
-        if '您的访问过于频繁' in body or response.status == 302:
+        if response.status == 302:
             self.request_stop = True
             # 更新状态为更新失败
             self.logDao.warn(u'您的访问过于频繁')
             self.wxSourceDao.updateStatus(wx_account, 'updateFail')
         else:
+            self.logDao.info(u'开始解析:' + wx_account)
             # 进行解析
             selector = Selector(text=body)
             results = selector.xpath('//*[@id="main"]/div[4]/ul/li')
