@@ -60,4 +60,4 @@ ITEM_PIPELINES = {
 #将ＩＭＡＧＥＳ＿ＳＴＯＲＥ设置为一个有效的文件夹，用来存储下载的图片．否则管道将保持禁用状态，即使你在ＩＴＥＭ＿ＰＩＰＥＬＩＮＥＳ设置中添加了它．
 # 图片存储在文件中（一个图片一个文件），并使用它们URL的 SHA1 hash 作为文件名。
 IMAGES_STORE = 'C:\\gsma\\pythonWorkSpace\\studyScrapy\\sina\\img'
-FILES_STORE = 'C:\\gsma\\pythonWorkSpace\\studyScrapy\\sina\\img'
+FILES_STORE = 'C:\\gsma\\pythonWorkSpace\\studyScrapy\\sina\\file'

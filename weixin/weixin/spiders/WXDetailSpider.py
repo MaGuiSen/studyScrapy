@@ -7,11 +7,13 @@ import scrapy
 import time
 from scrapy import Selector
 
-from weixin.db.LogDao import LogDao
-from weixin.db.WxSourceDao import WxSourceDao
-from weixin.items import WXDetailItem
-from weixin.util import NetworkUtil
-from weixin.util import TimerUtil
+from ..db.WxSourceDao import WxSourceDao
+from ..items import WXDetailItem
+
+from libMe.db.LogDao import LogDao
+from libMe.util import NetworkUtil
+from libMe.util import TimerUtil
+
 
 isEnd = False
 

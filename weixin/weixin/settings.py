@@ -57,4 +57,4 @@ ITEM_PIPELINES = {
 }
 
 IMAGES_STORE = 'C:\\gsma\\pythonWorkSpace\\studyScrapy\\weixin\\img'
-FILES_STORE = 'C:\\gsma\\pythonWorkSpace\\studyScrapy\\weixin\\img'
+FILES_STORE = 'C:\\gsma\\pythonWorkSpace\\studyScrapy\\weixin\\file'

@@ -1,33 +1,31 @@
 # -*- coding: utf-8 -*-
 import hashlib
 import json
-import random
+import time
 
-import demjson
 import scrapy
 from scrapy import Selector
-
-from wangyi.items import WYContentItem
 
 from libMe.db.LogDao import LogDao
 from libMe.util import NetworkUtil
 from libMe.util import TimerUtil
+from ..items import TXContentItem
 
 isEnd = False
 
 
 # 60s/120s/300s 刷新一次
-class WYDetailSpider(scrapy.Spider):
-    name = 'wy_detail'
+class TXDetailSpider(scrapy.Spider):
+    name = 'tx_detail'
     download_delay = 5  # 基础间隔 0.5*download_delay --- 1.5*download_delays之间的随机数
     handle_httpstatus_list = [301, 302, 204, 206, 403, 404, 500]  # 可以处理重定向及其他错误码导致的 页面无法获取解析的问题
 
     def __init__(self, name=None, **kwargs):
-        super(WYDetailSpider, self).__init__(name=None, **kwargs)
+        super(TXDetailSpider, self).__init__(name=None, **kwargs)
         self.count = 0
         self.request_stop = False
         self.request_stop_time = 0
-        self.logDao = LogDao('wy_list_detail')
+        self.logDao = LogDao('tx_list_detail')
 
     def start_requests(self):
         # while True:
@@ -46,10 +44,10 @@ class WYDetailSpider(scrapy.Spider):
                 # continue
 
             # 进行页面访问
-            newUrl = 'http://tech.163.com/special/00094IHV/news_json.js?' + str(random.uniform(0, 1))
+            newUrl = 'http://tech.qq.com/l/scroll.htm'
             self.logDao.warn(u'进行抓取列表:' + newUrl)
             yield scrapy.Request(url=newUrl,
-                                 meta={'request_type': 'wy_page_list', 'url': newUrl},
+                                 meta={'request_type': 'tx_page_list', 'url': newUrl},
                                  callback=self.parseArticleList, dont_filter=True)
 
     # TODO...还没有遇到被禁止的情况
@@ -57,20 +55,19 @@ class WYDetailSpider(scrapy.Spider):
         url = response.meta['url']
         body = response.body.decode('gbk')
         self.logDao.info(u'开始解析列表')
-        body = body.lstrip('var data=').rstrip(';')
-        # 格式化
-        articles = demjson.decode(body) or {}
-        articles = articles['news'] or []
-        for article_ins in articles:
-            for article in article_ins:
-                source_url = article['l']
-                title = article['t']
-                post_date = article['p']
-                self.logDao.info(u'抓取文章' + title + ':' + post_date + ':' + source_url)
-                yield scrapy.Request(url=source_url,
-                                     meta={'request_type': 'wy_detail', "title": title, 'post_date': post_date,
-                                           "source_url": source_url},
-                                     callback=self.parseArticle)
+        selector = Selector(text=body)
+
+        articles = selector.xpath('//div[@class="mod newslist"]//li')
+        for article in articles:
+            source_url = article.xpath('a/@href').extract_first('')
+            title = article.xpath('a/text()').extract_first('')
+            post_date = article.xpath('span/text()').extract_first('')
+            post_date = time.strftime('%Y', time.localtime(time.time())) + u'年' + post_date
+            self.logDao.info(u'抓取文章' + title + ':' + post_date + ':' + source_url)
+            yield scrapy.Request(url=source_url,
+                                 meta={'request_type': 'tx_detail', "title": title, 'post_date': post_date,
+                                       "source_url": source_url},
+                                 callback=self.parseArticle)
 
     def parseArticle(self, response):
         title = response.meta['title']
@@ -80,15 +77,20 @@ class WYDetailSpider(scrapy.Spider):
         self.logDao.info(u'开始解析文章:' + title + ':' + post_date + ':' + source_url)
 
         selector = Selector(text=body)
-        post_user = selector.xpath('//*[@id="ne_article_source"]/text()').extract_first()
-        page_content = selector.xpath('//*[@id="epContentLeft"]/div[@class="post_body"]')
+        post_user = selector.xpath('//*[@bosszone="jgname"]/text() | //*[@bosszone="jgname"]/a/text()').extract()
+        if post_user:
+            post_user = ''.join(post_user)
+        else:
+            post_user = ''
+
+        page_content = selector.xpath('//div[@id="Cnt-Main-Article-QQ"]')
 
         # 解析文档中的所有图片url，然后替换成标识
         image_urls = []
-        imgs = page_content.xpath('descendant::img')  # /@src | //img/@data-src
+        imgs = page_content.xpath('descendant::img')
         page_content = page_content.extract_first(default='').replace('\t', '').replace('\n', '')
         for img in imgs:
-            # 图片可能放在src 或者data-src
+            # 图片可能放在src
             image_url = img.xpath('@src').extract_first()
             if image_url and image_url.startswith('http'):
                 self.logDao.info(u'得到图片：' + image_url)
@@ -99,7 +101,7 @@ class WYDetailSpider(scrapy.Spider):
                     'url': image_url,
                     'hash': image_hash
                 })
-                # 替换url为hash，然后替换data-src为src
+                # 替换url为hash
                 page_content = page_content.replace(image_url, image_hash)
 
         m2 = hashlib.md5()
@@ -116,7 +118,7 @@ class WYDetailSpider(scrapy.Spider):
         }
         self.saveFile(urlHash, json.dumps(main, encoding="utf8", ensure_ascii=False))
 
-        contentItem = WYContentItem()
+        contentItem = TXContentItem()
         contentItem['channel_name'] = ''
         contentItem['source_url'] = source_url
         contentItem['title'] = title

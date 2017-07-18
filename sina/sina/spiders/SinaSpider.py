@@ -7,9 +7,10 @@ import scrapy
 import time
 from scrapy import Selector
 
-from sina.db.LogDao import LogDao
-from sina.util import NetworkUtil
-from sina.util import TimerUtil
+from libMe.db.LogDao import LogDao
+from libMe.util import NetworkUtil
+from libMe.util import TimerUtil
+
 from ..items import SinaContentItem
 import demjson
 
