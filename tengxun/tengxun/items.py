@@ -8,12 +8,6 @@
 import scrapy
 
 
-class TengxunItem(scrapy.Item):
-    # define the fields for your item here like:
-    # name = scrapy.Field()
-    pass
-
-
 class TXContentItem(scrapy.Item):
     page_content = scrapy.Field()  # 一个数组
     image_urls = scrapy.Field()  # [{'url':'', 'hash':''}]

@@ -60,6 +60,8 @@ class MysqlPipeline(object):
                                      json.dumps(item['image_urls'], encoding="utf8", ensure_ascii=False),
                                      update_time))
                 spider.logDao.info(u'存新浪详情：' + item['title'] + u'  成功')
+            else:
+                spider.logDao.info(u'存新浪详情已经存在：' + item['title'])
         else:
             pass
         cursor.close()

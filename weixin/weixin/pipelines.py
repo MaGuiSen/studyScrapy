@@ -46,7 +46,7 @@ class MysqlPipeline(object):
             # 如果存在，则不做处理
             if not self.checkDetailExist(cursor, item['title']):
                 spider.logDao.info(u'存微信详情：' + item['title'])
-                sql = "insert into wx_detail (post_date,post_user,page_content,title,wx_account,source_url,image_urls,"\
+                sql = "insert into weixin_detail (post_date,post_user,page_content,title,wx_account,source_url,image_urls,"\
                       "update_time) values(%s,%s,%s,%s,%s,%s,%s,%s) "
                 update_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
                 cursor.execute(sql, (item['post_date'],
@@ -58,6 +58,8 @@ class MysqlPipeline(object):
                                      json.dumps(item['image_urls'], encoding="utf8", ensure_ascii=False),
                                      update_time))
                 spider.logDao.info(u'存微信详情：' + item['title'] + u'成功')
+            else:
+                spider.logDao.info(u'存微信详情已经存在：' + item['title'])
         else:
             pass
         cursor.close()
@@ -65,7 +67,7 @@ class MysqlPipeline(object):
         return item
 
     def checkDetailExist(self, cursor,  title):
-        sql_query = 'select title from wx_detail where title=%s'
+        sql_query = 'select title from weixin_detail where title=%s'
         cursor.execute(sql_query, (title, ))
         results = cursor.fetchall()
         if results:
