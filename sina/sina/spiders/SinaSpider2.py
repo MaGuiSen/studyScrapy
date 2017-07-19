@@ -14,7 +14,7 @@ from libMe.util import TimerUtil
 
 import demjson
 
-
+# 60s整体刷新一次
 class SinaSpider(scrapy.Spider):
     name = 'sina2'
     download_delay = 5  # 基础间隔 0.5*download_delay --- 1.5*download_delays之间的随机数

@@ -67,6 +67,7 @@ class MysqlPipeline(object):
         return item
 
     def checkDetailExist(self, cursor,  title):
+        # TODO.. 差标识
         sql_query = 'select title from weixin_detail where title=%s'
         cursor.execute(sql_query, (title, ))
         results = cursor.fetchall()

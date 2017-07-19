@@ -22,6 +22,7 @@ MYSQL_PASSWD = '123456'         #数据库密码，请修改
 
 MYSQL_PORT = 3306               #数据库端口，在dbhelper中使用
 
+
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.221 Safari/537.36 SE 2.X MetaSr 1.0",
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36",
@@ -45,6 +46,8 @@ USER_AGENTS = [
 ]
 
 ROBOTSTXT_OBEY = False
+
+COOKIES_ENABLED = False
 
 DOWNLOAD_DELAY = 20
 RANDOMIZE_DOWNLOAD_DELAY = True

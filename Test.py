@@ -1398,9 +1398,10 @@ def a():
     while True:
         index += 1
         for did in [-1,-2,-3,-4,-5,-6,-7,-8,-9,-0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-11,-1,-1,-1,-111,-1,-1,-1]:
+            print did
             yield did
         print 1111
         time.sleep(2)
 
 for i in a():
-    print i
+    print 'a'
