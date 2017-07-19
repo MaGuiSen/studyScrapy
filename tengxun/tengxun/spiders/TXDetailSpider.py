@@ -103,8 +103,8 @@ class TXDetailSpider(scrapy.Spider):
                 page_content = page_content.replace(image_url, image_hash)
 
         m2 = hashlib.md5()
-        m2.update(source_url.encode('utf8'))
-        urlHash = m2.hexdigest()
+        m2.update(title.encode('utf8'))
+        titleHash = m2.hexdigest()
 
         main = {
             'title': title,
@@ -114,7 +114,7 @@ class TXDetailSpider(scrapy.Spider):
             'tags': '',
             'channel_name': ''
         }
-        self.saveFile(urlHash, json.dumps(main, encoding="utf8", ensure_ascii=False))
+        self.saveFile(titleHash, json.dumps(main, encoding="utf8", ensure_ascii=False))
 
         contentItem = TXContentItem()
         contentItem['channel_name'] = ''

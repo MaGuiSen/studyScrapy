@@ -151,10 +151,10 @@ class WXDetailSpider(scrapy.Spider):
             post_date = selector.xpath('//*[@id="post-date"]/text()').extract_first()
             post_user = selector.xpath('//*[@id="post-user"]/text()').extract_first()
             page_content = selector.xpath('//*[@id="js_content"]')
-            page = selector.xpath('//*[@id="img-content"]')
             # 解析文档中的所有图片url，然后替换成标识
             image_urls = []
             imgs = selector.xpath('//img[@class!="qr_code_pc_img"]')  # /@src | //img/@data-src
+            page_content = page_content.extract_first(default='').replace('\t', '').replace('\n', '')
             for img in imgs:
                 # 图片可能放在src 或者data-src
                 image_url = img.xpath('@src | @data-src').extract_first()
@@ -168,14 +168,13 @@ class WXDetailSpider(scrapy.Spider):
                         'hash': image_hash
                     })
                     # 替换url为hash，然后替换data-src为src
-                    page_content = page_content.extract_first(default='').replace(image_url, image_hash).replace('data-src', 'src')
-                    page = page.extract_first(default='').replace(image_url, image_hash).replace('data-src', 'src')
+                    page_content = page_content.replace(image_url, image_hash).replace('data-src', 'src')
             self.logDao.info(wx_account + u'得到文章：' + title + ":" + post_date + ':' + post_user)
             self.logDao.info(u'得到文章：' + source_url)
             m2 = hashlib.md5()
             m2.update(title.encode('utf8'))
             title_hash = m2.hexdigest()
-            self.saveFile(title_hash, page.extract_first())
+            self.saveFile(title_hash, page_content)
 
             # 存数据库
             item = WXDetailItem()

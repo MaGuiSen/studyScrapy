@@ -152,10 +152,10 @@ class SinaSpider(scrapy.Spider):
         }
 
         m2 = hashlib.md5()
-        m2.update(source_url.encode('utf8'))
-        urlHash = m2.hexdigest()
+        m2.update(title.encode('utf8'))
+        titleHash = m2.hexdigest()
 
-        self.saveFile(urlHash, json.dumps(main, encoding="utf8", ensure_ascii=False))
+        self.saveFile(titleHash, json.dumps(main, encoding="utf8", ensure_ascii=False))
 
         contentItem['title'] = title
         contentItem['post_date'] = post_date

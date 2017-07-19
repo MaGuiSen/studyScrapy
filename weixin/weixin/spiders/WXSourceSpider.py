@@ -93,7 +93,7 @@ class WXSourceSpider(scrapy.Spider):
                 # 正常抓好之后，当前跑空线程40分钟，不影响一些还没请求完成的request
                 if sources:
                     self.logDao.info(u'抓了一轮了，睡40分钟的空线程')
-                    TimerUtil.sleep(40*60)
+                    # TimerUtil.sleep(40*60)
 
     def parseList(self, response):
         source = response.meta['source']
