@@ -55,8 +55,8 @@ DOWNLOADER_MIDDLEWARES = {
 
 #开启图片管道
 ITEM_PIPELINES = {
-   'tengxun.pipelines.MyImagesPipeline': 50,
-   'tengxun.pipelines.MysqlPipeline': 40,
+   'tengxun.pipelines.MyImagesPipeline': 40,
+   'tengxun.pipelines.MysqlPipeline': 50,
 }
 
 #将ＩＭＡＧＥＳ＿ＳＴＯＲＥ设置为一个有效的文件夹，用来存储下载的图片．否则管道将保持禁用状态，即使你在ＩＴＥＭ＿ＰＩＰＥＬＩＮＥＳ设置中添加了它．

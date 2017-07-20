@@ -58,8 +58,8 @@ DOWNLOADER_MIDDLEWARES = {
 }
 
 ITEM_PIPELINES = {
-   'weixin.pipelines.MyImagesPipeline': 50,
-   'weixin.pipelines.MysqlPipeline': 40,
+   'weixin.pipelines.MyImagesPipeline': 40,
+   'weixin.pipelines.MysqlPipeline': 50,
 }
 
 IMAGES_STORE = 'C:\\gsma\\pythonWorkSpace\\studyScrapy\\res\\img\\weixin'

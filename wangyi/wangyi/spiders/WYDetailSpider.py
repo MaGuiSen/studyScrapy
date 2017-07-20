@@ -12,7 +12,9 @@ from wangyi.items import WYContentItem
 from libMe.db.LogDao import LogDao
 from libMe.util import NetworkUtil
 from libMe.util import TimerUtil
-
+from libMe.util import EncryptUtil
+from libMe.util import CssUtil
+from ..db.CheckDao import CheckDao
 isEnd = False
 
 
@@ -28,6 +30,10 @@ class WYDetailSpider(scrapy.Spider):
         self.request_stop = False
         self.request_stop_time = 0
         self.logDao = LogDao('wangyi_list_detail')
+        self.checkDao = CheckDao()
+        self.css = { # 用于缓存css
+            'hash': 'style'
+        }
 
     def start_requests(self):
         # while True:
@@ -68,6 +74,10 @@ class WYDetailSpider(scrapy.Spider):
             for article_ins in articles:
                 for article in article_ins:
                     source_url = article['l']
+                    # 如果存在则不抓取
+                    if self.checkDao.checkExist(source_url):
+                        continue
+
                     title = article['t']
                     post_date = article['p']
                     self.logDao.info(u'抓取文章' + title + ':' + post_date + ':' + source_url)
@@ -87,55 +97,84 @@ class WYDetailSpider(scrapy.Spider):
             self.logDao.info(u'开始解析文章:' + title + ':' + post_date + ':' + source_url)
 
             selector = Selector(text=body)
-            post_user = selector.xpath('//*[@id="ne_article_source"]/text()').extract_first()
-            page_content = selector.xpath('//*[@id="epContentLeft"]/div[@class="post_body"]')
 
+            # 得到样式
+            styleUrls = selector.xpath('//link[@rel="stylesheet"]/@href').extract()
+            styleList = []
+            for styleUrl in styleUrls:
+                # 得到hash作为key
+                styleUrlHash = EncryptUtil.md5(styleUrl)
+                if not self.css.get(styleUrlHash):
+                    # 不存在则去下载 并保存
+                    self.css[styleUrlHash] = CssUtil.downLoad(styleUrl).decode('gbk')
+                styleList.append(self.css[styleUrlHash])
+            styles = CssUtil.compressCss(styleList)
+
+            post_user = selector.xpath('//*[@id="ne_article_source"]/text()').extract_first()
+            content_html = selector.xpath('//*[@id="endText"]')
+            # 去除内部不需要的标签
+            content_items = content_html.xpath('child::p')
+
+            # 得到纯文本
+            content_txt = []
+            for item in content_items:
+                # 自身的文本
+                selfTxt = item.xpath('text()').extract_first('')
+                # 子孙的内容文本
+                descendantItems = item.xpath('descendant::*/text()').extract()
+                descendantTxt = ''.join(descendantItems)
+                # 加入
+                content_txt.append(selfTxt + descendantTxt)
+            content_txt = '\n'.join(content_txt)
+
+            # 组装新的内容标签
+            outHtml = """<div class="post_text" id="endText" style="border-top:1px solid #ddd;" jcid="5611">${++content++}</div>"""
+            content_items = content_items.extract()
+            content_items = ''.join(content_items)
+
+            content_html = outHtml.replace('${++content++}', content_items)
+
+            selector = Selector(text=content_html)
             # 解析文档中的所有图片url，然后替换成标识
             image_urls = []
-            imgs = page_content.xpath('descendant::img')  # /@src | //img/@data-src
-            page_content = page_content.extract_first(default='').replace('\t', '').replace('\n', '')
+            imgs = selector.xpath('descendant::img')
+
             for img in imgs:
                 # 图片可能放在src 或者data-src
                 image_url = img.xpath('@src').extract_first()
                 if image_url and image_url.startswith('http'):
                     self.logDao.info(u'得到图片：' + image_url)
-                    m2 = hashlib.md5()
-                    m2.update(image_url)
-                    image_hash = m2.hexdigest()
                     image_urls.append({
                         'url': image_url,
-                        'hash': image_hash
                     })
-                    # 替换url为hash，然后替换data-src为src
-                    page_content = page_content.replace(image_url, image_hash)
 
-            m2 = hashlib.md5()
-            m2.update(title.encode('utf8'))
-            titleHash = m2.hexdigest()
+            titleHash = EncryptUtil.md5(title.encode('utf8'))
+            self.saveFile(titleHash, body)
 
-            main = {
-                'title': title,
-                'post_date': post_date,
-                'post_user': post_user,
-                'page_content': page_content,
-                'tags': '',
-                'channel_name': ''
-            }
-            self.saveFile(titleHash, json.dumps(main, encoding="utf8", ensure_ascii=False))
+            # 得到hashCode
+            hash_code = self.checkDao.getHashCode(source_url)
 
             contentItem = WYContentItem()
-            contentItem['channel_name'] = ''
-            contentItem['source_url'] = source_url
-            contentItem['title'] = title
-            contentItem['post_date'] = post_date
-            contentItem['post_user'] = post_user
+            contentItem['content_txt'] = content_txt
             contentItem['image_urls'] = image_urls
-            contentItem['page_content'] = page_content
+            contentItem['title'] = title
+            contentItem['source_url'] = source_url
+            contentItem['post_date'] = post_date
+            contentItem['channel_name'] = ''
+            contentItem['post_user'] = post_user
             contentItem['tags'] = ''
+            contentItem['styles'] = styles
+            contentItem['content_html'] = content_html
+            contentItem['hash_code'] = hash_code
+            contentItem['info_type'] = 1
+            contentItem['src_source_id'] = 4
+            # contentItem['src_account_id'] = 0
+            contentItem['src_channel'] = '网易科技'
+
             return contentItem
 
     def saveFile(self, title, content):
-        filename = 'html/%s.json' % title
+        filename = 'html/%s.html' % title
         with open(filename, 'wb') as f:
             f.write(content.encode("utf8"))
         self.log('Saved file %s' % filename)

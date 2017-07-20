@@ -6,8 +6,8 @@
 # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
 import hashlib
 import json
-
 import time
+
 from mysql.connector import MySQLConnection
 from scrapy import Request
 from scrapy.pipelines.images import ImagesPipeline
@@ -80,6 +80,7 @@ class MysqlPipeline(object):
         self.connector.commit()
 
 
+
 class MyImagesPipeline(ImagesPipeline):
     def get_media_requests(self, item, info):
         for image_url in item['image_urls']:
@@ -103,3 +104,4 @@ class MyImagesPipeline(ImagesPipeline):
                 })
         item['image_urls'] = image_urls
         return item
+
