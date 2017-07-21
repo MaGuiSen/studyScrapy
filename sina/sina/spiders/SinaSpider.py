@@ -11,7 +11,7 @@ from libMe.db.LogDao import LogDao
 from libMe.util import NetworkUtil
 from libMe.util import TimerUtil
 
-from ..items import SinaContentItem
+from ..items import ContentItem
 import demjson
 
 
@@ -92,7 +92,7 @@ class SinaSpider(scrapy.Spider):
         self.logDao.info(u"解析列表：" + url)
         for item in list:
             itemTime = item['time'] or 0
-            contentItem = SinaContentItem()
+            contentItem = ContentItem()
             channel = item['channel'] or {}
             channel_name = channel['title']
             contentItem['channel_name'] = channel_name

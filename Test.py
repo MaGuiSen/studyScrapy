@@ -127,6 +127,17 @@
 # #     print u'fail to uplaod ',upload_file_ret
 
 
-print """
-    \\aaaa,'''''
-""".replace('\'', '"').replace('\\', '\\\\')
+# # print """
+# #     \\aaaa,'''''
+# # """.replace('\'', '"').replace('\\', '\\\\')
+# import time
+#
+# print time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(1500608959))
+from scrapy import Selector
+
+value = """
+ckground-image:url(http://i.sso.sina.com.cn/images/login/top_account_icon_v2.png);_background-image:url(http://i.sso.sina.com.cn/images/login/top_account_icon_ie6_v2.png)}.T
+"""
+
+selector = Selector(text=value)
+print 1

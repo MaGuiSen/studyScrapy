@@ -1,20 +1,17 @@
 # -*- coding: utf-8 -*-
-import hashlib
-import json
 import random
 
 import demjson
 import scrapy
 from scrapy import Selector
 
-from ..items import ContentItem
-
 from libMe.db.LogDao import LogDao
+from libMe.util import CssUtil
+from libMe.util import EncryptUtil
 from libMe.util import NetworkUtil
 from libMe.util import TimerUtil
-from libMe.util import EncryptUtil
-from libMe.util import CssUtil
 from ..db.CheckDao import CheckDao
+from ..items import ContentItem
 
 
 # 60s/120s/300s 刷新一次
@@ -118,18 +115,17 @@ class WYDetailSpider(scrapy.Spider):
             src_ref = selector.xpath('//*[@id="ne_article_source"]/text()').extract_first()
             content_html = selector.xpath('//*[@id="endText"]')
             # 去除内部不需要的标签
-            content_items = content_html.xpath('child::p')
+            # 完整案例：content_html.xpath('*[not(boolean(@class="entHdPic" or @class="ep-source cDGray")) and not(name(.)="script")]').extract()
+            content_items = content_html.xpath('*[not(boolean(@class="gg200x300" or @class="ep-source cDGray")) and not(name(.)="script")]')
 
             # 得到纯文本
             content_txt = []
             for item in content_items:
-                # 自身的文本
-                selfTxt = item.xpath('text()').extract_first('')
-                # 子孙的内容文本
-                descendantItems = item.xpath('descendant::*/text()').extract()
-                descendantTxt = ''.join(descendantItems)
+                # 文本
+                allTxt = item.xpath('.//text()').extract()
+                allTxt = ''.join(allTxt).replace('\t', '')
                 # 加入
-                content_txt.append(selfTxt + descendantTxt)
+                content_txt.append(allTxt)
             content_txt = '\n'.join(content_txt)
 
             # 组装新的内容标签
