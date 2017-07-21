@@ -9,7 +9,10 @@ from scrapy import Selector
 from libMe.db.LogDao import LogDao
 from libMe.util import NetworkUtil
 from libMe.util import TimerUtil
-from ..items import TXContentItem
+from libMe.util import CssUtil
+from libMe.util import EncryptUtil
+from ..items import ContentItem
+from ..db.CheckDao import CheckDao
 
 
 # 60s/120s/300s 刷新一次
@@ -24,6 +27,11 @@ class TXDetailSpider(scrapy.Spider):
         self.request_stop = False
         self.request_stop_time = 0
         self.logDao = LogDao('tengxun_list_detail')
+        self.checkDao = CheckDao()
+        # 用于缓存css
+        self.css = {
+            'hash': 'style'
+        }
 
     def start_requests(self):
         # while True:
@@ -50,85 +58,125 @@ class TXDetailSpider(scrapy.Spider):
 
     # TODO...还没有遇到被禁止的情况
     def parseArticleList(self, response):
-        url = response.meta['url']
         body = response.body.decode('gbk')
-        self.logDao.info(u'开始解析列表')
-        selector = Selector(text=body)
-
-        articles = selector.xpath('//div[@class="mod newslist"]//li')
-        for article in articles:
-            source_url = article.xpath('a/@href').extract_first('')
-            title = article.xpath('a/text()').extract_first('')
-            post_date = article.xpath('span/text()').extract_first('')
-            post_date = time.strftime('%Y', time.localtime(time.time())) + u'年' + post_date
-            self.logDao.info(u'抓取文章' + title + ':' + post_date + ':' + source_url)
-            yield scrapy.Request(url=source_url,
-                                 meta={'request_type': 'tengxun_detail', "title": title, 'post_date': post_date,
-                                       "source_url": source_url},
-                                 callback=self.parseArticle)
+        if False:
+            self.logDao.info(u'访问过多被禁止')
+        else:
+            self.logDao.info(u'开始解析列表')
+            selector = Selector(text=body)
+            articles = selector.xpath('//div[@class="mod newslist"]//li')
+            for article in articles:
+                source_url = article.xpath('a/@href').extract_first('')
+                title = article.xpath('a/text()').extract_first('')
+                post_date = article.xpath('span/text()').extract_first('')
+                post_date = time.strftime('%Y', time.localtime(time.time())) + u'年' + post_date
+                self.logDao.info(u'抓取文章' + title + ':' + post_date + ':' + source_url)
+                yield scrapy.Request(url=source_url,
+                                     meta={'request_type': 'tengxun_detail', "title": title, 'post_date': post_date,
+                                           "source_url": source_url},
+                                     callback=self.parseArticle)
 
     def parseArticle(self, response):
-        title = response.meta['title']
-        post_date = response.meta['post_date']
-        source_url = response.meta['source_url']
         body = response.body.decode('gbk')
-        self.logDao.info(u'开始解析文章:' + title + ':' + post_date + ':' + source_url)
-
-        selector = Selector(text=body)
-        post_user = selector.xpath('//*[@bosszone="jgname"]/text() | //*[@bosszone="jgname"]/a/text()').extract()
-        if post_user:
-            post_user = ''.join(post_user)
+        if False:
+            self.logDao.info(u'访问过多被禁止')
         else:
-            post_user = ''
+            title = response.meta['title']
+            post_date = response.meta['post_date']
+            source_url = response.meta['source_url']
+            self.logDao.info(u'开始解析文章:' + title + ':' + post_date + ':' + source_url)
 
-        page_content = selector.xpath('//div[@id="Cnt-Main-Article-QQ"]')
+            selector = Selector(text=body)
 
-        # 解析文档中的所有图片url，然后替换成标识
-        image_urls = []
-        imgs = page_content.xpath('descendant::img')
-        page_content = page_content.extract_first(default='').replace('\t', '').replace('\n', '')
-        for img in imgs:
-            # 图片可能放在src
-            image_url = img.xpath('@src').extract_first()
-            if image_url and image_url.startswith('http'):
-                self.logDao.info(u'得到图片：' + image_url)
-                m2 = hashlib.md5()
-                m2.update(image_url)
-                image_hash = m2.hexdigest()
-                image_urls.append({
-                    'url': image_url,
-                    'hash': image_hash
-                })
-                # 替换url为hash
-                page_content = page_content.replace(image_url, image_hash)
+            # 得到样式
+            styleUrls = selector.xpath('//link[@rel="stylesheet"]/@href').extract()
+            styleList = []
+            for styleUrl in styleUrls:
+                # 得到hash作为key
+                styleUrlHash = EncryptUtil.md5(styleUrl)
+                if not self.css.get(styleUrlHash):
+                    # 不存在则去下载 并保存
+                    self.css[styleUrlHash] = CssUtil.downLoad(styleUrl).decode('gbk')
+                styleList.append(self.css[styleUrlHash])
+            styles = CssUtil.compressCss(styleList).replace('\'', '"').replace('\\', '\\\\')
 
-        m2 = hashlib.md5()
-        m2.update(title.encode('utf8'))
-        titleHash = m2.hexdigest()
+            category = selector.xpath('//*[@class="a_catalog"]/a/text()|//*[@class="a_catalog"]/text()').extract_first('')
 
-        main = {
-            'title': title,
-            'post_date': post_date,
-            'post_user': post_user,
-            'page_content': page_content,
-            'tags': '',
-            'channel_name': ''
-        }
-        self.saveFile(titleHash, json.dumps(main, encoding="utf8", ensure_ascii=False))
+            post_user = selector.xpath('//*[@class="a_author"]/text()').extract_first('')
 
-        contentItem = TXContentItem()
-        contentItem['channel_name'] = ''
-        contentItem['source_url'] = source_url
-        contentItem['title'] = title
-        contentItem['post_date'] = post_date
-        contentItem['post_user'] = post_user
-        contentItem['image_urls'] = image_urls
-        contentItem['page_content'] = page_content
-        contentItem['tags'] = ''
-        return contentItem
+            src_ref = selector.xpath('//*[@class="a_source"]/text()').extract_first('')
+
+            a_time = selector.xpath('//*[@class="a_time"]/text()').extract_first('')
+            if not a_time:
+                post_date = a_time
+            else:
+                post_date = (post_date or '').replace(u'年', '-').replace(u'月', '-').replace(u'日', '')
+
+            content_html = selector.xpath('//div[@id="Cnt-Main-Article-QQ"]')
+
+            # 去除内部不需要的标签
+            content_items = content_html.xpath('child::p')
+
+            # 得到纯文本
+            content_txt = []
+            for item in content_items:
+                # 自身的文本
+                selfTxt = item.xpath('text()').extract_first('')
+                # 子孙的内容文本
+                descendantItems = item.xpath('descendant::*/text()').extract()
+                descendantTxt = ''.join(descendantItems)
+                # 加入
+                content_txt.append(selfTxt + descendantTxt)
+            content_txt = '\n'.join(content_txt)
+
+            # 组装新的内容标签
+            outHtml = """<div id="Cnt-Main-Article-QQ" class="Cnt-Main-Article-QQ" bosszone="content">${++content++}</div>"""
+            content_items = content_items.extract()
+            content_items = ''.join(content_items)
+
+            content_html = outHtml.replace('${++content++}', content_items)
+
+            selector = Selector(text=content_html)
+            # 解析文档中的所有图片url，然后替换成标识
+            image_urls = []
+            imgs = selector.xpath('descendant::img')
+
+            for img in imgs:
+                # 图片可能放在src 或者data-src
+                image_url = img.xpath('@src').extract_first()
+                if image_url and image_url.startswith('http'):
+                    self.logDao.info(u'得到图片：' + image_url)
+                    image_urls.append({
+                        'url': image_url,
+                    })
+
+            urlHash = EncryptUtil.md5(source_url.encode('utf8'))
+            self.saveFile(urlHash, body)
+
+            # 得到hashCode
+            hash_code = self.checkDao.getHashCode(source_url)
+
+            contentItem = ContentItem()
+            contentItem['content_txt'] = content_txt
+            contentItem['image_urls'] = image_urls
+            contentItem['title'] = title
+            contentItem['source_url'] = source_url
+            contentItem['post_date'] = post_date
+            contentItem['sub_channel'] = category
+            contentItem['post_user'] = post_user
+            contentItem['tags'] = ''
+            contentItem['styles'] = styles
+            contentItem['content_html'] = content_html
+            contentItem['hash_code'] = hash_code
+            contentItem['info_type'] = 1
+            contentItem['src_source_id'] = 3
+            # contentItem['src_account_id'] = 0
+            contentItem['src_channel'] = '腾讯科技'
+            contentItem['src_ref'] = src_ref
+            return contentItem
 
     def saveFile(self, title, content):
-        filename = 'html/%s.json' % title
+        filename = 'html/%s.html' % title
         with open(filename, 'wb') as f:
             f.write(content.encode("utf8"))
         self.log('Saved file %s' % filename)

@@ -8,19 +8,13 @@
 import scrapy
 
 
-class WangyiItem(scrapy.Item):
-    # define the fields for your item here like:
-    # name = scrapy.Field()
-    pass
-
-
-class WYContentItem(scrapy.Item):
+class ContentItem(scrapy.Item):
     content_txt = scrapy.Field()
     image_urls = scrapy.Field()
     title = scrapy.Field()
     source_url = scrapy.Field()
     post_date = scrapy.Field()
-    channel_name = scrapy.Field()
+    sub_channel = scrapy.Field()
     post_user = scrapy.Field()
     tags = scrapy.Field()
     styles = scrapy.Field()
@@ -30,3 +24,4 @@ class WYContentItem(scrapy.Item):
     src_source_id = scrapy.Field()
     src_account_id = scrapy.Field()
     src_channel = scrapy.Field()
+    src_ref = scrapy.Field()

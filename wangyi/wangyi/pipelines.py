@@ -5,16 +5,14 @@
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
 
-import hashlib
-import json
-import os
-
 import time
+
 from mysql.connector import MySQLConnection
 from scrapy import Request
 from scrapy.pipelines.images import ImagesPipeline
+
 from libMe.util.FileUtil import FileUtil
-from wangyi.items import WYContentItem
+from .items import ContentItem
 
 
 class MysqlPipeline(object):
@@ -39,31 +37,32 @@ class MysqlPipeline(object):
 
     def process_item(self, item, spider):
         cursor = self.connector.cursor()
-        if isinstance(item, WYContentItem):
+        if isinstance(item, ContentItem):
             # 如果存在，则不做处理
-                spider.logDao.info(u'存网易详情：' + item['title'])
-                sql = "insert into wangyi_detail (" \
-                      "content_txt,title,source_url,post_date,channel_name,post_user,tags,styles," \
-                      "content_html,hash_code,info_type,src_source_id,src_channel,update_time) " \
-                      "values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) "
+            spider.logDao.info(u'存网易详情：' + item['title'])
+            sql = "insert into wangyi_detail (" \
+                  "content_txt,title,source_url,post_date,sub_channel,post_user,tags,styles," \
+                  "content_html,hash_code,info_type,src_source_id,src_channel,src_ref,update_time) " \
+                  "values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) "
 
-                update_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-                cursor.execute(sql, (
-                    item['content_txt'],
-                    item['title'],
-                    item['source_url'],
-                    item['post_date'],
-                    item['channel_name'],
-                    item['post_user'],
-                    item['tags'],
-                    item['styles'],
-                    item['content_html'],
-                    item['hash_code'],
-                    item['info_type'],
-                    item['src_source_id'],
-                    item['src_channel'],
-                    update_time))
-                spider.logDao.info(u'存网易详情：' + item['title'] + u'  成功')
+            update_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+            cursor.execute(sql, (
+                item['content_txt'],
+                item['title'],
+                item['source_url'],
+                item['post_date'],
+                item['sub_channel'],
+                item['post_user'],
+                item['tags'],
+                item['styles'],
+                item['content_html'],
+                item['hash_code'],
+                item['info_type'],
+                item['src_source_id'],
+                item['src_channel'],
+                item['src_ref'],
+                update_time))
+            spider.logDao.info(u'存网易详情：' + item['title'] + u'  成功')
         else:
             pass
         cursor.close()

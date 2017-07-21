@@ -21,7 +21,7 @@ class CheckDao(object):
         """
         hash_code = self.getHashCode(source_url)
         cursor = self.connector.cursor()
-        sql_query = 'select id from wangyi_detail where hash_code=%s'
+        sql_query = 'select id from tengxun_detail where hash_code=%s'
         cursor.execute(sql_query, (hash_code,))
         results = cursor.fetchall()
         cursor.close()

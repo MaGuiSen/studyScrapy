@@ -7,7 +7,7 @@ import demjson
 import scrapy
 from scrapy import Selector
 
-from wangyi.items import WYContentItem
+from ..items import ContentItem
 
 from libMe.db.LogDao import LogDao
 from libMe.util import NetworkUtil
@@ -15,7 +15,6 @@ from libMe.util import TimerUtil
 from libMe.util import EncryptUtil
 from libMe.util import CssUtil
 from ..db.CheckDao import CheckDao
-isEnd = False
 
 
 # 60s/120s/300s 刷新一次
@@ -31,7 +30,8 @@ class WYDetailSpider(scrapy.Spider):
         self.request_stop_time = 0
         self.logDao = LogDao('wangyi_list_detail')
         self.checkDao = CheckDao()
-        self.css = { # 用于缓存css
+        # 用于缓存css
+        self.css = {
             'hash': 'style'
         }
 
@@ -69,31 +69,36 @@ class WYDetailSpider(scrapy.Spider):
             self.logDao.info(u'开始解析列表')
             body = body.lstrip('var data=').rstrip(';')
             # 格式化
-            articles = demjson.decode(body) or {}
-            articles = articles['news'] or []
+            jsonStr = demjson.decode(body) or {}
+            articles = jsonStr.get('news') or []
+            categoryList = jsonStr.get('category') or []
             for article_ins in articles:
                 for article in article_ins:
-                    source_url = article['l']
+                    source_url = article.get('l')
                     # 如果存在则不抓取
                     if self.checkDao.checkExist(source_url):
                         continue
-
-                    title = article['t']
-                    post_date = article['p']
+                    categoryIndex = article.get('c')
+                    category = ''
+                    if 0 <= categoryIndex < len(categoryList):
+                        category = categoryList[categoryIndex].get('n')
+                    title = article.get('t')
+                    post_date = article.get('p')
                     self.logDao.info(u'抓取文章' + title + ':' + post_date + ':' + source_url)
                     yield scrapy.Request(url=source_url,
-                                         meta={'request_type': 'wangyi_detail', "title": title, 'post_date': post_date,
+                                         meta={'request_type': 'wangyi_detail', "title": title, 'category':category,'post_date': post_date,
                                                "source_url": source_url},
                                          callback=self.parseArticle)
 
     def parseArticle(self, response):
+        body = response.body.decode('gbk')
         if False:
             self.logDao.info(u'访问过多被禁止')
         else:
+            category = response.meta['category']
             title = response.meta['title']
             post_date = response.meta['post_date']
             source_url = response.meta['source_url']
-            body = response.body.decode('gbk')
             self.logDao.info(u'开始解析文章:' + title + ':' + post_date + ':' + source_url)
 
             selector = Selector(text=body)
@@ -108,9 +113,9 @@ class WYDetailSpider(scrapy.Spider):
                     # 不存在则去下载 并保存
                     self.css[styleUrlHash] = CssUtil.downLoad(styleUrl).decode('gbk')
                 styleList.append(self.css[styleUrlHash])
-            styles = CssUtil.compressCss(styleList)
+            styles = CssUtil.compressCss(styleList).replace('\'', '"').replace('\\', '\\\\')
 
-            post_user = selector.xpath('//*[@id="ne_article_source"]/text()').extract_first()
+            src_ref = selector.xpath('//*[@id="ne_article_source"]/text()').extract_first()
             content_html = selector.xpath('//*[@id="endText"]')
             # 去除内部不需要的标签
             content_items = content_html.xpath('child::p')
@@ -148,20 +153,20 @@ class WYDetailSpider(scrapy.Spider):
                         'url': image_url,
                     })
 
-            titleHash = EncryptUtil.md5(title.encode('utf8'))
-            self.saveFile(titleHash, body)
+            urlHash = EncryptUtil.md5(source_url.encode('utf8'))
+            self.saveFile(urlHash, body)
 
             # 得到hashCode
             hash_code = self.checkDao.getHashCode(source_url)
 
-            contentItem = WYContentItem()
+            contentItem = ContentItem()
             contentItem['content_txt'] = content_txt
             contentItem['image_urls'] = image_urls
             contentItem['title'] = title
             contentItem['source_url'] = source_url
             contentItem['post_date'] = post_date
-            contentItem['channel_name'] = ''
-            contentItem['post_user'] = post_user
+            contentItem['sub_channel'] = category
+            contentItem['post_user'] = ''
             contentItem['tags'] = ''
             contentItem['styles'] = styles
             contentItem['content_html'] = content_html
@@ -170,7 +175,7 @@ class WYDetailSpider(scrapy.Spider):
             contentItem['src_source_id'] = 4
             # contentItem['src_account_id'] = 0
             contentItem['src_channel'] = '网易科技'
-
+            contentItem['src_ref'] = src_ref
             return contentItem
 
     def saveFile(self, title, content):

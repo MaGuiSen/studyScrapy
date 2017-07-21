@@ -125,3 +125,8 @@
 # #     # print upload_file_ret
 # # else:
 # #     print u'fail to uplaod ',upload_file_ret
+
+
+print """
+    \\aaaa,'''''
+""".replace('\'', '"').replace('\\', '\\\\')
