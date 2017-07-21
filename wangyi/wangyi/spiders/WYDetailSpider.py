@@ -114,65 +114,66 @@ class WYDetailSpider(scrapy.Spider):
 
             src_ref = selector.xpath('//*[@id="ne_article_source"]/text()').extract_first()
             content_html = selector.xpath('//*[@id="endText"]')
-            # 去除内部不需要的标签
-            # 完整案例：content_html.xpath('*[not(boolean(@class="entHdPic" or @class="ep-source cDGray")) and not(name(.)="script")]').extract()
-            content_items = content_html.xpath('*[not(boolean(@class="gg200x300" or @class="ep-source cDGray")) and not(name(.)="script")]')
+            if len(content_html):
+                # 去除内部不需要的标签
+                # 完整案例：content_html.xpath('*[not(boolean(@class="entHdPic" or @class="ep-source cDGray")) and not(name(.)="script")]').extract()
+                content_items = content_html.xpath('*[not(boolean(@class="gg200x300" or @class="ep-source cDGray")) and not(name(.)="script")]')
 
-            # 得到纯文本
-            content_txt = []
-            for item in content_items:
-                # 文本
-                allTxt = item.xpath('.//text()').extract()
-                allTxt = ''.join(allTxt).replace('\t', '')
-                # 加入
-                content_txt.append(allTxt)
-            content_txt = '\n'.join(content_txt)
+                # 得到纯文本
+                content_txt = []
+                for item in content_items:
+                    # 文本
+                    allTxt = item.xpath('.//text()').extract()
+                    allTxt = ''.join(allTxt).replace('\t', '')
+                    # 加入
+                    content_txt.append(allTxt)
+                content_txt = '\n'.join(content_txt)
 
-            # 组装新的内容标签
-            outHtml = """<div class="post_text" id="endText" style="border-top:1px solid #ddd;" jcid="5611">${++content++}</div>"""
-            content_items = content_items.extract()
-            content_items = ''.join(content_items)
+                # 组装新的内容标签
+                outHtml = """<div class="post_text" id="endText" style="border-top:1px solid #ddd;" jcid="5611">${++content++}</div>"""
+                content_items = content_items.extract()
+                content_items = ''.join(content_items)
 
-            content_html = outHtml.replace('${++content++}', content_items)
+                content_html = outHtml.replace('${++content++}', content_items)
 
-            selector = Selector(text=content_html)
-            # 解析文档中的所有图片url，然后替换成标识
-            image_urls = []
-            imgs = selector.xpath('descendant::img')
+                selector = Selector(text=content_html)
+                # 解析文档中的所有图片url，然后替换成标识
+                image_urls = []
+                imgs = selector.xpath('descendant::img')
 
-            for img in imgs:
-                # 图片可能放在src 或者data-src
-                image_url = img.xpath('@src').extract_first()
-                if image_url and image_url.startswith('http'):
-                    self.logDao.info(u'得到图片：' + image_url)
-                    image_urls.append({
-                        'url': image_url,
-                    })
+                for img in imgs:
+                    # 图片可能放在src 或者data-src
+                    image_url = img.xpath('@src').extract_first()
+                    if image_url and image_url.startswith('http'):
+                        self.logDao.info(u'得到图片：' + image_url)
+                        image_urls.append({
+                            'url': image_url,
+                        })
 
-            urlHash = EncryptUtil.md5(source_url.encode('utf8'))
-            self.saveFile(urlHash, body)
+                urlHash = EncryptUtil.md5(source_url.encode('utf8'))
+                self.saveFile(urlHash, body)
 
-            # 得到hashCode
-            hash_code = self.checkDao.getHashCode(source_url)
+                # 得到hashCode
+                hash_code = self.checkDao.getHashCode(source_url)
 
-            contentItem = ContentItem()
-            contentItem['content_txt'] = content_txt
-            contentItem['image_urls'] = image_urls
-            contentItem['title'] = title
-            contentItem['source_url'] = source_url
-            contentItem['post_date'] = post_date
-            contentItem['sub_channel'] = category
-            contentItem['post_user'] = ''
-            contentItem['tags'] = ''
-            contentItem['styles'] = styles
-            contentItem['content_html'] = content_html
-            contentItem['hash_code'] = hash_code
-            contentItem['info_type'] = 1
-            contentItem['src_source_id'] = 4
-            # contentItem['src_account_id'] = 0
-            contentItem['src_channel'] = '网易科技'
-            contentItem['src_ref'] = src_ref
-            return contentItem
+                contentItem = ContentItem()
+                contentItem['content_txt'] = content_txt
+                contentItem['image_urls'] = image_urls
+                contentItem['title'] = title
+                contentItem['source_url'] = source_url
+                contentItem['post_date'] = post_date
+                contentItem['sub_channel'] = category
+                contentItem['post_user'] = ''
+                contentItem['tags'] = ''
+                contentItem['styles'] = styles
+                contentItem['content_html'] = content_html
+                contentItem['hash_code'] = hash_code
+                contentItem['info_type'] = 1
+                contentItem['src_source_id'] = 4
+                # contentItem['src_account_id'] = 0
+                contentItem['src_channel'] = '网易科技'
+                contentItem['src_ref'] = src_ref
+                return contentItem
 
     def saveFile(self, title, content):
         filename = 'html/%s.html' % title
