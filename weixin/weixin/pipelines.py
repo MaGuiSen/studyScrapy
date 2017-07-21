@@ -4,20 +4,11 @@
 #
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
-import hashlib
-import json
 import time
 
 from mysql.connector import MySQLConnection
 from scrapy import Request
 from scrapy.pipelines.images import ImagesPipeline
-
-from weixin.items import WXDetailItem
-
-
-class WeixinPipeline(object):
-    def process_item(self, item, spider):
-        return item
 
 
 class MysqlPipeline(object):
@@ -42,46 +33,49 @@ class MysqlPipeline(object):
 
     def process_item(self, item, spider):
         cursor = self.connector.cursor()
-        if isinstance(item, WXDetailItem):
+        if isinstance(item, ContentItem):
             # 如果存在，则不做处理
-            if not self.checkDetailExist(cursor, item['title']):
-                spider.logDao.info(u'存微信详情：' + item['title'])
-                sql = "insert into weixin_detail (post_date,post_user,page_content,title,wx_account,source_url,image_urls,"\
-                      "update_time) values(%s,%s,%s,%s,%s,%s,%s,%s) "
-                update_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-                cursor.execute(sql, (item['post_date'],
-                                     item['post_user'],
-                                     item['page_content'],
-                                     item['title'],
-                                     item['wx_account'],
-                                     item['source_url'],
-                                     json.dumps(item['image_urls'], encoding="utf8", ensure_ascii=False),
-                                     update_time))
-                spider.logDao.info(u'存微信详情：' + item['title'] + u'成功')
-            else:
-                spider.logDao.info(u'存微信详情已经存在：' + item['title'])
+            spider.logDao.info(u'存微信详情：' + item['title'])
+            sql = "insert into weixin_detail (" \
+                  "content_txt,title,source_url,post_date,sub_channel,post_user,tags,styles," \
+                  "content_html,hash_code,info_type,src_source_id,src_channel,src_ref,update_time) " \
+                  "values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) "
+
+            update_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+            cursor.execute(sql, (
+                item['content_txt'],
+                item['title'],
+                item['source_url'],
+                item['post_date'],
+                item['sub_channel'],
+                item['post_user'],
+                item['tags'],
+                item['styles'],
+                item['content_html'],
+                item['hash_code'],
+                item['info_type'],
+                item['src_source_id'],
+                item['src_channel'],
+                item['src_ref'],
+                update_time))
+            spider.logDao.info(u'存微信详情：' + item['title'] + u'  成功')
         else:
             pass
         cursor.close()
         self.connector.commit()
         return item
 
-    def checkDetailExist(self, cursor,  title):
-        # TODO.. 差标识
-        sql_query = 'select title from weixin_detail where title=%s'
-        cursor.execute(sql_query, (title, ))
-        results = cursor.fetchall()
-        if results:
-            return True
-        else:
-            return False
-
     def close_spider(self, spider):
         self.connector.commit()
 
 
-
 class MyImagesPipeline(ImagesPipeline):
+    def __init__(self, store_uri, download_func=None, settings=None):
+        super(MyImagesPipeline, self).__init__(store_uri, download_func=None, settings=None)
+        botName = 'weixin'  # 注意需要更改。。。
+        self.fileUtil = FileUtil(u'/news/' + botName + u'/image/',
+                                 u'img/')
+
     def get_media_requests(self, item, info):
         for image_url in item['image_urls']:
             yield Request(image_url['url'])
@@ -91,17 +85,10 @@ class MyImagesPipeline(ImagesPipeline):
         image_urls = []
         for ok, x in results:
             if ok:
-                print(x)
                 url = x['url']
                 path = x['path']
-                m2 = hashlib.md5()
-                m2.update(url)
-                image_hash = m2.hexdigest()
-                image_urls.append({
-                    'path': path,
-                    'hash': image_hash,
-                    'url': url
-                })
-        item['image_urls'] = image_urls
+                imgUrl = self.fileUtil.upload(path)
+                if imgUrl:
+                    # 拿出内容，然后替换路径为url
+                    item['content_html'] = item['content_html'].replace('&amp;', '&').replace(url, imgUrl)
         return item
-

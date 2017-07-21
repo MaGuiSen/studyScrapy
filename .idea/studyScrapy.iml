@@ -10,6 +10,8 @@
       <sourceFolder url="file://$MODULE_DIR$/wangyi" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/tengxun" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/libMe" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/weixinDetail" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/weixinSource" isTestSource="false" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
