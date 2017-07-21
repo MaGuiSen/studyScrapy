@@ -218,6 +218,8 @@ class WXDetailSpider(scrapy.Spider):
                 contentItem['src_account_id'] = wx_account_id
                 contentItem['src_channel'] = '微信公众号'
                 contentItem['src_ref'] = ''
+                contentItem['wx_account'] = wx_account
+
                 return contentItem
 
     def saveFile(self, title, content):

@@ -136,7 +136,7 @@
 from scrapy import Selector
 
 value = """
-ckground-image:url(http://i.sso.sina.com.cn/images/login/top_account_icon_v2.png);_background-image:url(http://i.sso.sina.com.cn/images/login/top_account_icon_ie6_v2.png)}.T
+ckground-image:url( "http://mat1.gtimg.com/www/images/channel_logo/tech_logo.png");_background-image:url("http://mat1.gtimg.com/www/dddddaaa/channel_logo/tech_logo.png")}.T
 """
 
 selector = Selector(text=value)

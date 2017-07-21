@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import re
 import time
 
 import scrapy
@@ -100,6 +101,13 @@ class TXDetailSpider(scrapy.Spider):
                     self.css[styleUrlHash] = CssUtil.downLoad(styleUrl).decode('gbk')
                 styleList.append(self.css[styleUrlHash])
             styles = CssUtil.compressCss(styleList).replace('\'', '"').replace('\\', '\\\\')
+
+            # 替换样式里面的链接
+            pAll = re.compile('\s*\"http.*?\"\s*')
+            matchUrls = pAll.findall(styles)
+            if len(matchUrls):
+                for matchUrl in matchUrls:
+                    styles = styles.replace(matchUrl, '')
 
             category = selector.xpath('//*[@class="a_catalog"]/a/text()|//*[@class="a_catalog"]/text()').extract_first('')
 

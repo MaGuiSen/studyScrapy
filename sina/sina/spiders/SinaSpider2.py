@@ -2,6 +2,7 @@
 import hashlib
 import random
 import json
+import re
 
 import scrapy
 import time
@@ -142,10 +143,18 @@ class SinaSpider(scrapy.Spider):
                 styleList.append(self.css[styleUrlHash])
             styles = CssUtil.compressCss(styleList).replace('\'', '"').replace('\\', '\\\\')
 
+            # 替换样式里面的链接
+            pAll = re.compile('\s*\"http.*?\"\s*')
+            matchUrls = pAll.findall(styles)
+            if len(matchUrls):
+                for matchUrl in matchUrls:
+                    styles = styles.replace(matchUrl, '')
+
             post_date = selector.xpath('//*[@id="pub_date"]/text() | //*[@class="titer"]/text()').extract_first('')
             post_date = post_date.replace('\r\n', '').strip(' ').replace(u'年', '-').replace(u'月', '-').replace(u'日', '')
             src_ref = selector.xpath(
-                '//*[@id="media_name"]/a[1]/text() | //*[@class="source"]/a/text() | //*[@class="source"]/text()').extract_first('')
+                '//*[@id="media_name"]/a[1]/text() | //*[@class="source"]/a/text() | //*[@class="source"]/text()').extract_first(
+                '')
 
             post_user = selector.xpath('//*[@id="author_ename"]/a/text()').extract_first('')
 
