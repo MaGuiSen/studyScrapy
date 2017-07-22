@@ -195,5 +195,3 @@ def clearUrl(value):
 
 print clearUrl(value)
 
-print aaaa
-
