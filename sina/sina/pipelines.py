@@ -93,6 +93,8 @@ class MyImagesPipeline(ImagesPipeline):
             if ok:
                 url = x['url']
                 path = x['path']
+                # TODO...
+                break
                 imgUrl = self.fileUtil.upload(path)
                 if imgUrl:
                     # 拿出内容，然后替换路径为url

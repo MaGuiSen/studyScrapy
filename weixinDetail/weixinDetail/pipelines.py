@@ -39,11 +39,11 @@ class MysqlPipeline(object):
         cursor = self.connector.cursor()
         if isinstance(item, ContentItem):
             # 如果存在，则不做处理
-            spider.logDao.info(u'存网易详情：' + item['title'])
-            sql = "insert into wangyi_detail (" \
+            spider.logDao.info(u'存微信详情：' + item['title'])
+            sql = "insert into weixin_detail (" \
                   "content_txt,title,source_url,post_date,sub_channel,post_user,tags,styles," \
-                  "content_html,hash_code,info_type,src_source_id,src_channel,src_ref,update_time) " \
-                  "values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) "
+                  "content_html,hash_code,info_type,src_source_id,src_account_id,src_channel,src_ref,wx_account,update_time) " \
+                  "values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) "
 
             update_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
             cursor.execute(sql, (
@@ -59,10 +59,12 @@ class MysqlPipeline(object):
                 item['hash_code'],
                 item['info_type'],
                 item['src_source_id'],
+                item['src_account_id'],
                 item['src_channel'],
                 item['src_ref'],
+                item['wx_account'],
                 update_time))
-            spider.logDao.info(u'存网易详情：' + item['title'] + u'  成功')
+            spider.logDao.info(u'存微信详情：' + item['title'] + u'  成功')
         else:
             pass
         cursor.close()
@@ -76,7 +78,7 @@ class MysqlPipeline(object):
 class MyImagesPipeline(ImagesPipeline):
     def __init__(self, store_uri, download_func=None, settings=None):
         super(MyImagesPipeline, self).__init__(store_uri, download_func=None, settings=None)
-        botName = 'wangyi'  # 注意需要更改。。。
+        botName = 'weixin'  # 注意需要更改。。。
         self.fileUtil = FileUtil(u'/news/' + botName + u'/image/',
                                  u'img/')
 
@@ -91,10 +93,8 @@ class MyImagesPipeline(ImagesPipeline):
             if ok:
                 url = x['url']
                 path = x['path']
-                # TODO...
-                break
                 imgUrl = self.fileUtil.upload(path)
                 if imgUrl:
                     # 拿出内容，然后替换路径为url
-                    item['content_html'] = item['content_html'].replace('&amp;', '&').replace(url, imgUrl)
+                    item['content_html'] = item['content_html'].replace('&amp;', '&').replace(url, imgUrl).replace('data-src', 'src')
         return item

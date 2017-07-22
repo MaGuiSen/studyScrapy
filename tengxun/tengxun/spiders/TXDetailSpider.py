@@ -103,11 +103,7 @@ class TXDetailSpider(scrapy.Spider):
             styles = CssUtil.compressCss(styleList).replace('\'', '"').replace('\\', '\\\\')
 
             # 替换样式里面的链接
-            pAll = re.compile('\s*\"http.*?\"\s*')
-            matchUrls = pAll.findall(styles)
-            if len(matchUrls):
-                for matchUrl in matchUrls:
-                    styles = styles.replace(matchUrl, '')
+            styles = CssUtil.clearUrl(styles)
 
             category = selector.xpath('//*[@class="a_catalog"]/a/text()|//*[@class="a_catalog"]/text()').extract_first('')
 

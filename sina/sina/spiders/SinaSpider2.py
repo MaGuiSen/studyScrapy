@@ -142,13 +142,7 @@ class SinaSpider(scrapy.Spider):
                     self.css[styleUrlHash] = CssUtil.downLoad(styleUrl)
                 styleList.append(self.css[styleUrlHash])
             styles = CssUtil.compressCss(styleList).replace('\'', '"').replace('\\', '\\\\')
-
-            # 替换样式里面的链接
-            pAll = re.compile('\s*\"http.*?\"\s*')
-            matchUrls = pAll.findall(styles)
-            if len(matchUrls):
-                for matchUrl in matchUrls:
-                    styles = styles.replace(matchUrl, '')
+            styles = CssUtil.clearUrl(styles)
 
             post_date = selector.xpath('//*[@id="pub_date"]/text() | //*[@class="titer"]/text()').extract_first('')
             post_date = post_date.replace('\r\n', '').strip(' ').replace(u'年', '-').replace(u'月', '-').replace(u'日', '')
@@ -179,7 +173,7 @@ class SinaSpider(scrapy.Spider):
                         if not post_user:
                             # 先替换作者 ，如果不存在的话
                             post_user = src_ref
-                        src_ref = allTxt.replace(u'来源：', '')
+                        src_ref = allTxt.replace(u'来源：', '').strip(u' ')
                     # 加入
                     content_txt.append(allTxt)
                 content_txt = '\n'.join(content_txt)

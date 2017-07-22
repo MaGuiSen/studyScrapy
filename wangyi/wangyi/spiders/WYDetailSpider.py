@@ -112,12 +112,7 @@ class WYDetailSpider(scrapy.Spider):
                     self.css[styleUrlHash] = CssUtil.downLoad(styleUrl).decode('gbk')
                 styleList.append(self.css[styleUrlHash])
             styles = CssUtil.compressCss(styleList).replace('\'', '"').replace('\\', '\\\\')
-            # 替换样式里面的链接
-            pAll = re.compile('\s*\"http.*?\"\s*')
-            matchUrls = pAll.findall(styles)
-            if len(matchUrls):
-                for matchUrl in matchUrls:
-                    styles = styles.replace(matchUrl, '')
+            styles = CssUtil.clearUrl(styles)
 
             src_ref = selector.xpath('//*[@id="ne_article_source"]/text()').extract_first()
             content_html = selector.xpath('//*[@id="endText"]')
