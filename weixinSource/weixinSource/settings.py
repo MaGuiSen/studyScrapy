@@ -14,14 +14,19 @@ BOT_NAME = 'weixinSource'
 SPIDER_MODULES = ['weixinSource.spiders']
 NEWSPIDER_MODULE = 'weixinSource.spiders'
 
+LOG_LEVEL = 'INFO'
 
 #Mysql数据库的配置信息
-MYSQL_HOST = 'localhost'
-MYSQL_DBNAME = 'scrapy'         #数据库名字，请修改
+MYSQL_HOST = '117.29.166.222'
+MYSQL_DBNAME = 'trivest_spider'         #数据库名字，请修改
 MYSQL_USER = 'root'             #数据库账号，请修改
-MYSQL_PASSWD = '123456'         #数据库密码，请修改
-
-MYSQL_PORT = 3306               #数据库端口，在dbhelper中使用
+MYSQL_PASSWD = '522admin#eping'         #数据库密码，请修改
+MYSQL_PORT = 4360               #数据库端口，在dbhelper中使用
+# MYSQL_HOST = 'localhost'
+# MYSQL_DBNAME = 'scrapy'         #数据库名字，请修改
+# MYSQL_USER = 'root'             #数据库账号，请修改
+# MYSQL_PASSWD = '123456'         #数据库密码，请修改
+# MYSQL_PORT = 3306               #数据库端口，在dbhelper中使用
 
 
 USER_AGENTS = [

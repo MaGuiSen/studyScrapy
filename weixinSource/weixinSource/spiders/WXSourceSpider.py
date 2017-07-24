@@ -8,6 +8,7 @@ from ..db.WxSourceDao import WxSourceDao
 
 from libMe.db.LogDao import LogDao
 from libMe.util import NetworkUtil
+from libMe.util import EncodeUtil
 from libMe.util import TimerUtil
 
 
@@ -23,7 +24,7 @@ class WXSourceSpider(scrapy.Spider):
         self.request_stop = False
         self.currIp = ''
         self.request_stop_time = 0
-        self.logDao = LogDao('weixin_source_catch')
+        self.logDao = LogDao(self.logger,'weixin_source_catch')
 
     def start_requests(self):
         # TODO..加上while可能有问题，有些抓不到
@@ -99,7 +100,7 @@ class WXSourceSpider(scrapy.Spider):
         source = response.meta['source']
         wx_account = response.meta['wx_account']
         url = response.meta['url']
-        body = response.body
+        body = EncodeUtil.toUnicode(response.body)
         # 判断被禁止 提示需要重启路由 清理cookie
         if response.status == 302:
             self.request_stop = True

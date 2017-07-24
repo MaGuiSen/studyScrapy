@@ -9,6 +9,7 @@ from libMe.db.LogDao import LogDao
 from libMe.util import CssUtil
 from libMe.util import EncryptUtil
 from libMe.util import NetworkUtil
+from libMe.util import EncodeUtil
 from libMe.util import TimerUtil
 from ..db.CheckDao import CheckDao
 from ..items import ContentItem
@@ -17,7 +18,7 @@ from ..items import ContentItem
 # 60s/120s/300s 刷新一次
 class TXDetailSpider(scrapy.Spider):
     name = 'tengxun_detail'
-    download_delay = 5  # 基础间隔 0.5*download_delay --- 1.5*download_delays之间的随机数
+    download_delay = 2.5  # 基础间隔 0.5*download_delay --- 1.5*download_delays之间的随机数
     handle_httpstatus_list = [301, 302, 204, 206, 403, 404, 500]  # 可以处理重定向及其他错误码导致的 页面无法获取解析的问题
 
     def __init__(self, name=None, **kwargs):
@@ -25,7 +26,7 @@ class TXDetailSpider(scrapy.Spider):
         self.count = 0
         self.request_stop = False
         self.request_stop_time = 0
-        self.logDao = LogDao('tengxun_list_detail')
+        self.logDao = LogDao(self.logger,'tengxun_list_detail')
         self.checkDao = CheckDao()
         # 用于缓存css
         self.css = {
@@ -57,7 +58,7 @@ class TXDetailSpider(scrapy.Spider):
 
     # TODO...还没有遇到被禁止的情况
     def parseArticleList(self, response):
-        body = response.body.decode('gbk')
+        body = EncodeUtil.toUnicode(response.body)
         if False:
             self.logDao.info(u'访问过多被禁止')
         else:
@@ -69,6 +70,10 @@ class TXDetailSpider(scrapy.Spider):
                 title = article.xpath('a/text()').extract_first('')
                 post_date = article.xpath('span/text()').extract_first('')
                 post_date = time.strftime('%Y', time.localtime(time.time())) + u'年' + post_date
+                # 如果存在则不抓取
+                if self.checkDao.checkExist(source_url):
+                    self.logDao.info(u'文章已经存在' + title + ':' + post_date + ':' + source_url)
+                    continue
                 self.logDao.info(u'抓取文章' + title + ':' + post_date + ':' + source_url)
 
                 # source_url = 'http://tech.qq.com/a/20170721/026542.htm'
@@ -79,7 +84,7 @@ class TXDetailSpider(scrapy.Spider):
                                      callback=self.parseArticle)
 
     def parseArticle(self, response):
-        body = response.body.decode('gbk')
+        body = EncodeUtil.toUnicode(response.body)
         if False:
             self.logDao.info(u'访问过多被禁止')
         else:
@@ -98,7 +103,7 @@ class TXDetailSpider(scrapy.Spider):
                 styleUrlHash = EncryptUtil.md5(styleUrl)
                 if not self.css.get(styleUrlHash):
                     # 不存在则去下载 并保存
-                    self.css[styleUrlHash] = CssUtil.downLoad(styleUrl).decode('gbk')
+                    self.css[styleUrlHash] = CssUtil.downLoad(styleUrl)
                 styleList.append(self.css[styleUrlHash])
             styles = CssUtil.compressCss(styleList).replace('\'', '"').replace('\\', '\\\\')
 

@@ -25,7 +25,7 @@ class SinaSpider(scrapy.Spider):
         self.count = 0
         self.request_stop = False
         self.request_stop_time = 0
-        self.logDao = LogDao('sina_detail')
+        self.logDao = LogDao(self.logger, 'sina_detail')
 
     def start_requests(self):
         # while True:

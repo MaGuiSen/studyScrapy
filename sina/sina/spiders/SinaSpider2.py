@@ -12,6 +12,7 @@ from libMe.db.LogDao import LogDao
 from libMe.util import CssUtil
 from libMe.util import EncryptUtil
 from libMe.util import NetworkUtil
+from libMe.util import EncodeUtil
 from libMe.util import TimerUtil
 from ..db.CheckDao import CheckDao
 from ..items import ContentItem
@@ -22,7 +23,7 @@ import demjson
 # 60s整体刷新一次
 class SinaSpider(scrapy.Spider):
     name = 'sina2'
-    download_delay = 5  # 基础间隔 0.5*download_delay --- 1.5*download_delays之间的随机数
+    download_delay = 2.5  # 基础间隔 0.5*download_delay --- 1.5*download_delays之间的随机数
     handle_httpstatus_list = [301, 302, 204, 206, 403, 404, 500]  # 可以处理重定向及其他错误码导致的 页面无法获取解析的问题
 
     # 错误码 [scrapy.downloadermiddlewares.retry] DEBUG: Retrying <GET http://tech.sina.com.cn/i/2017-07-18/doc-ifyiakur9086112.shtml> (failed 1 times): TCP connection timed out: 10060: �������ӷ���һ��ʱ���û����ȷ�𸴻����ӵ�����û�з�Ӧ�����ӳ���ʧ�ܡ�.
@@ -32,7 +33,7 @@ class SinaSpider(scrapy.Spider):
         self.count = 0
         self.request_stop = False
         self.request_stop_time = 0
-        self.logDao = LogDao('sina_detail')
+        self.logDao = LogDao(self.logger, 'sina_detail')
         self.checkDao = CheckDao()
         # 用于缓存css
         self.css = {
@@ -66,34 +67,33 @@ class SinaSpider(scrapy.Spider):
                 self.request_stop = False
 
         # 进行爬虫
-        url = 'http://roll.news.sina.com.cn/interface/rollnews_ch_out_interface.php?col=30&spec=&type=&ch=05&k' \
-              '=&offset_page=0&offset_num=0&num=60&asc=&page='
 
-        for page in range(0, 2):
-            if self.request_stop:
-                self.logDao.warn(u'出现被绊或者出现网络异常，退出循环')
-                # 当网络出现被绊的情况，就需要停止所有的请求等待IP更换
-                break
-            r = random.uniform(0, 1)
-            newUrl = url + str(page)
-            newUrl += ('&r=' + str(r))
-            self.logDao.info(u"开始抓取列表：" + newUrl)
-            yield scrapy.Request(url=newUrl, meta={'request_type': 'sina_list', 'url': newUrl}, callback=self.parseList)
+        url = 'http://roll.news.sina.com.cn/interface/rollnews_ch_out_interface.php?col=96&spec=&type=&ch=01&k=&offset_page=0&offset_num=0&num=60&asc=&page=1'
+        # url = 'http://tech.sina.com.cn/t/2017-07-24/doc-ifyihrit1274195.shtml'
 
-            # if self.request_stop:
-            #     # 需要发起通知 进行重新拨号
-            #     self.logDao.warn(u'发送重新拨号信号，请等待2分钟会尝试重新抓取')
-            #     self.request_stop_time = time.time()
-            #     pass
-            # else:
-            #     # 正常抓好之后，当前跑空线程10分钟，不影响一些还没请求完成的request
-            #     self.logDao.info(u'请求了一轮了，但是可能还有没有请求完成，睡一会10分钟')
-            #     TimerUtil.sleep(10 * 60)
-            #     pass
+        if self.request_stop:
+            self.logDao.warn(u'出现被绊或者出现网络异常，退出循环')
+            # 当网络出现被绊的情况，就需要停止所有的请求等待IP更换
+            # break
+        r = random.uniform(0, 1)
+        newUrl = url + ('&r=' + str(r))
+        self.logDao.info(u"开始抓取列表：" + newUrl)
+        yield scrapy.Request(url=newUrl, meta={'request_type': 'sina_list', 'url': newUrl}, callback=self.parseList)
+
+        # if self.request_stop:
+        #     # 需要发起通知 进行重新拨号
+        #     self.logDao.warn(u'发送重新拨号信号，请等待2分钟会尝试重新抓取')
+        #     self.request_stop_time = time.time()
+        #     pass
+        # else:
+        #     # 正常抓好之后，当前跑空线程10分钟，不影响一些还没请求完成的request
+        #     self.logDao.info(u'请求了一轮了，但是可能还有没有请求完成，睡一会10分钟')
+        #     TimerUtil.sleep(10 * 60)
+        #     pass
 
     # TODO。。还没有找到被禁止的情况
     def parseList(self, response):
-        data = response.body.decode('gbk')
+        data = EncodeUtil.toUnicode(response.body)
         if False:
             self.logDao.info(u'访问过多被禁止')
         else:
@@ -110,8 +110,11 @@ class SinaSpider(scrapy.Spider):
                 itemTime = item.get('time') or 0
                 channel = item.get('channel') or {}
                 channel_name = channel.get('title')
-
+                source_url = item['url']
                 callback = self.parseDetail2
+                if self.checkDao.checkExist(source_url):
+                    self.logDao.info(u'文章已经存在：' + source_url)
+                    continue
                 self.logDao.info(u"开始抓取文章：" + item['url'])
                 # item['url'] = "http://tech.sina.com.cn/i/2017-07-21/doc-ifyihrmf3085159.shtml"
                 yield scrapy.Request(url=item['url'],
@@ -120,7 +123,7 @@ class SinaSpider(scrapy.Spider):
                                      callback=callback)
 
     def parseDetail2(self, response):
-        body = response.body.decode('utf8')
+        body = EncodeUtil.toUnicode(response.body)
         if False:
             self.logDao.info(u'访问过多被禁止')
         else:

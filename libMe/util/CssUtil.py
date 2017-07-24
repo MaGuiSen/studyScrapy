@@ -4,11 +4,13 @@ import re
 import requests
 from csscompressor import compress
 
+from util import EncodeUtil
+
 
 def downLoad(url):
     result = requests.get(url, timeout=5)
     if result.status_code == 200:
-        return result.content
+        return EncodeUtil.toUnicode(result.content)
     else:
         return ''
 
@@ -31,14 +33,8 @@ def clearUrl(value):
             value = value.replace(matchUrl, 'url("")')
 
     # ngMethod=scale,src=http://www.sinaimg.cn/IT/deco/2014/0619/index/playIconH.png)}
-    pAll = re.compile('src=.*?\)')
-    matchUrls = pAll.findall(value)
-    if len(matchUrls):
-        for matchUrl in matchUrls:
-            value = value.replace(matchUrl, 'src="")')
-
-    # (src="https://mat1.gtimg.com/news/base2011/img/trs.png",s
-    pAll = re.compile('src=\".*\"')
+    # # (src="https://mat1.gtimg.com/news/base2011/img/trs.png"
+    pAll = re.compile('src=\".*\"|src=.*?\)')
     matchUrls = pAll.findall(value)
     if len(matchUrls):
         for matchUrl in matchUrls:

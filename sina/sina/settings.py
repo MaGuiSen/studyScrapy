@@ -14,13 +14,19 @@ BOT_NAME = 'sina'
 SPIDER_MODULES = ['sina.spiders']
 NEWSPIDER_MODULE = 'sina.spiders'
 
-#Mysql数据库的配置信息
-MYSQL_HOST = 'localhost'
-MYSQL_DBNAME = 'scrapy'         #数据库名字，请修改
-MYSQL_USER = 'root'             #数据库账号，请修改
-MYSQL_PASSWD = '123456'         #数据库密码，请修改
+LOG_LEVEL = 'INFO'
 
-MYSQL_PORT = 3306               #数据库端口，在dbhelper中使用
+#Mysql数据库的配置信息
+MYSQL_HOST = '117.29.166.222'
+MYSQL_DBNAME = 'trivest_spider'         #数据库名字，请修改
+MYSQL_USER = 'root'             #数据库账号，请修改
+MYSQL_PASSWD = '522admin#eping'         #数据库密码，请修改
+MYSQL_PORT = 4360               #数据库端口，在dbhelper中使用
+# MYSQL_HOST = 'localhost'
+# MYSQL_DBNAME = 'scrapy'         #数据库名字，请修改
+# MYSQL_USER = 'root'             #数据库账号，请修改
+# MYSQL_PASSWD = '123456'         #数据库密码，请修改
+# MYSQL_PORT = 3306               #数据库端口，在dbhelper中使用
 
 USER_AGENTS = [
     "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; AcooBrowser; .NET CLR 1.1.4322; .NET CLR 2.0.50727)",
@@ -61,5 +67,5 @@ ITEM_PIPELINES = {
 
 #将ＩＭＡＧＥＳ＿ＳＴＯＲＥ设置为一个有效的文件夹，用来存储下载的图片．否则管道将保持禁用状态，即使你在ＩＴＥＭ＿ＰＩＰＥＬＩＮＥＳ设置中添加了它．
 # 图片存储在文件中（一个图片一个文件），并使用它们URL的 SHA1 hash 作为文件名。
-IMAGES_STORE = 'C:\\gsma\\pythonWorkSpace\\studyScrapy\\sina\\img'
-FILES_STORE = 'C:\\gsma\\pythonWorkSpace\\studyScrapy\\sina\\file'
+IMAGES_STORE = 'D:\\soft_develop\\workspace\\studyScrapy\\sina\\img'
+FILES_STORE = 'D:\\soft_develop\\workspace\\studyScrapy\\sina\\file'

@@ -26,7 +26,7 @@ class WXDetailSpider(scrapy.Spider):
         self.wxSourceDao = WxSourceDao()
         self.request_stop = False
         self.request_stop_time = 0
-        self.logDao = LogDao('weixin_list_detail')
+        self.logDao = LogDao(self.logger,'weixin_list_detail')
 
     def start_requests(self):
         # unKnow = ["didalive", "HIS_Technology", "CINNO_CreateMore", "ad_helper", "zhongduchongdu"]; 是搜索不到的

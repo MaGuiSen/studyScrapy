@@ -12,6 +12,7 @@ from ..items import ContentItem
 
 from libMe.db.LogDao import LogDao
 from libMe.util import NetworkUtil
+from libMe.util import EncodeUtil
 from libMe.util import TimerUtil
 from ..db.CheckDao import CheckDao
 
@@ -27,7 +28,7 @@ class WXDetailSpider(scrapy.Spider):
         self.wxSourceDao = WxSourceDao()
         self.request_stop = False
         self.request_stop_time = 0
-        self.logDao = LogDao('weixin_list_detail')
+        self.logDao = LogDao(self.logger,'weixin_list_detail')
         self.checkDao = CheckDao()
 
     def start_requests(self):
@@ -94,7 +95,7 @@ class WXDetailSpider(scrapy.Spider):
             #         pass
 
     def parseArticleList(self, response):
-        body = response.body.decode('utf8')
+        body = EncodeUtil.toUnicode(response.body)
         selector = Selector(text=body)
         title = selector.xpath('//title/text()').extract_first('').strip(u' ')
         isN = u"请输入验证码" == title
@@ -138,7 +139,7 @@ class WXDetailSpider(scrapy.Spider):
                                                  callback=self.parseArticle)
 
     def parseArticle(self, response):
-        body = response.body.decode('utf8')
+        body = EncodeUtil.toUnicode(response.body)
         selector = Selector(text=body)
         title = selector.xpath('//title/text()').extract_first('').strip(u' ')
         isN = u"请输入验证码" == title

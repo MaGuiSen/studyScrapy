@@ -23,7 +23,7 @@ class WXSourceSpider(scrapy.Spider):
         self.request_stop = False
         self.currIp = ''
         self.request_stop_time = 0
-        self.logDao = LogDao('weixin_source_catch')
+        self.logDao = LogDao(self.logger,'weixin_source_catch')
 
     def start_requests(self):
         # TODO..加上while可能有问题，有些抓不到

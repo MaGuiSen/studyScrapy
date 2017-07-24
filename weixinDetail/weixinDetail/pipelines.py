@@ -26,6 +26,7 @@ class MysqlPipeline(object):
             db=settings['MYSQL_DBNAME'],
             user=settings['MYSQL_USER'],
             passwd=settings['MYSQL_PASSWD'],
+            port=settings['MYSQL_PORT'],
             charset='utf8',  # 编码要加上，否则可能出现中文乱码问题
             use_unicode=False,
         )
@@ -46,25 +47,28 @@ class MysqlPipeline(object):
                   "values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) "
 
             update_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-            cursor.execute(sql, (
-                item['content_txt'],
-                item['title'],
-                item['source_url'],
-                item['post_date'],
-                item['sub_channel'],
-                item['post_user'],
-                item['tags'],
-                item['styles'],
-                item['content_html'],
-                item['hash_code'],
-                item['info_type'],
-                item['src_source_id'],
-                item['src_account_id'],
-                item['src_channel'],
-                item['src_ref'],
-                item['wx_account'],
-                update_time))
-            spider.logDao.info(u'存微信详情：' + item['title'] + u'  成功')
+            try:
+                cursor.execute(sql, (
+                    item['content_txt'],
+                    item['title'],
+                    item['source_url'],
+                    item['post_date'],
+                    item['sub_channel'],
+                    item['post_user'],
+                    item['tags'],
+                    item['styles'],
+                    item['content_html'],
+                    item['hash_code'],
+                    item['info_type'],
+                    item['src_source_id'],
+                    item['src_account_id'],
+                    item['src_channel'],
+                    item['src_ref'],
+                    item['wx_account'],
+                    update_time))
+                spider.logDao.info(u'存微信详情：' + item['title'] + u'  成功')
+            except Exception, e:
+                print e
         else:
             pass
         cursor.close()
@@ -93,6 +97,8 @@ class MyImagesPipeline(ImagesPipeline):
             if ok:
                 url = x['url']
                 path = x['path']
+                # # TODO...
+                # break
                 imgUrl = self.fileUtil.upload(path)
                 if imgUrl:
                     # 拿出内容，然后替换路径为url

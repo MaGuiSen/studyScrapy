@@ -8,11 +8,12 @@ import config.configutils as cu
 
 
 class LogDao(object):
-    def __init__(self, belongTo=''):
+    def __init__(self, logger, belongTo=''):
         self.configPath = os.path.join(os.path.dirname(__file__) + "/config/db_config_inner.ini")
         self.dbConfig = cu.read_db_config(self.configPath)
         self.connector = MySQLConnection(charset='utf8', **self.dbConfig)
         self.belongTo = belongTo
+        self.logger = logger
 
     '''
     scrapy_log
@@ -40,7 +41,7 @@ class LogDao(object):
         return results or []
 
     def save(self, info, level, belong_to='', attach=''):
-        print belong_to, info
+        self.logger.info(belong_to+info)
         cursor = self.connector.cursor()
         sql_query = 'insert into scrapy_log (info,level,save_time,belong_to,attach) values (%s,%s,%s,%s,%s)'
         save_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
