@@ -1,27 +1,24 @@
 # -*- coding: utf-8 -*-
 import random
-import socket
 import time
 
-import requests
-from mysql.connector import MySQLConnection
-import os
-import config.configutils as cu
+from libMe.db.Connector import Connector
 
 
 class WxSourceDao(object):
     def __init__(self):
-        self.configPath = os.path.join(os.path.dirname(__file__) + "/config/db_config_inner.ini")
-        self.dbConfig = cu.read_db_config(self.configPath)
-        self.connector = MySQLConnection(charset='utf8', **self.dbConfig)
+        self.connector = Connector()
         self.orderType = 'desc'  # 用于判断是升序还是降序
 
     def queryEnable(self, isRandom=False):
         cursor = self.connector.cursor()
+        if not cursor:
+            return []
         if self.orderType == "desc":
             self.orderType = "asc"
         else:
             self.orderType = "desc"
+
         # """
         #     select wx_name,wx_account,wx_url,wx_avatar,update_status,is_enable,update_time from weixin_source
         #     where is_enable='1'
@@ -55,13 +52,15 @@ class WxSourceDao(object):
         获取wxUrl有值，且是有效的
         :return:
         """
+        cursor = self.connector.cursor()
+        if not cursor:
+            return []
         if self.orderType == "desc":
             self.orderType = "asc"
         else:
             self.orderType = "desc"
         sql_query = "select wx_name,wx_account,wx_url,wx_avatar,update_status,is_enable,update_time from weixin_source " \
                     "where is_enable='1' and wx_url !='' order by id " + self.orderType
-        cursor = self.connector.cursor()
         cursor.execute(sql_query)
         results = cursor.fetchall()
         cursor.close()
@@ -73,6 +72,8 @@ class WxSourceDao(object):
 
     def updateStatus(self, wx_account, update_status):
         cursor = self.connector.cursor()
+        if not cursor:
+            return
         sql_query = "update weixin_source set update_status=%s,update_time=%s where wx_account=%s"
         update_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
         cursor.execute(sql_query, (update_status, update_time, wx_account))
@@ -84,6 +85,8 @@ class WxSourceDao(object):
         重置更新中的的为updateFail，如果出现网络问题，似乎无法回调到而是会一直retry，所以先尝试手动在外部重置
         """
         cursor = self.connector.cursor()
+        if not cursor:
+            return
         sql_query = "update weixin_source set update_status='updateFail',update_time=%s where update_status='updating'"
         update_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
         cursor.execute(sql_query, (update_time,))
@@ -92,6 +95,8 @@ class WxSourceDao(object):
 
     def updateSource(self, wx_account, wx_name, wx_url, update_status):
         cursor = self.connector.cursor()
+        if not cursor:
+            return
         sql_query = "update weixin_source set wx_name=%s,wx_url=%s,update_status=%s,update_time=%s where " \
                     "wx_account=%s "
         update_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))

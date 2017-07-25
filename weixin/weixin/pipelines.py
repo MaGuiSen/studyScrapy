@@ -23,6 +23,7 @@ class MysqlPipeline(object):
             user=settings['MYSQL_USER'],
             passwd=settings['MYSQL_PASSWD'],
             charset='utf8',  # 编码要加上，否则可能出现中文乱码问题
+            connection_timeout=3600,
             use_unicode=False,
         )
         connector = MySQLConnection(**dbParams)
@@ -32,37 +33,37 @@ class MysqlPipeline(object):
         self.connector = connector
 
     def process_item(self, item, spider):
-        cursor = self.connector.cursor()
-        if isinstance(item, ContentItem):
-            # 如果存在，则不做处理
-            spider.logDao.info(u'存微信详情：' + item['title'])
-            sql = "insert into weixin_detail (" \
-                  "content_txt,title,source_url,post_date,sub_channel,post_user,tags,styles," \
-                  "content_html,hash_code,info_type,src_source_id,src_channel,src_ref,update_time) " \
-                  "values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) "
-
-            update_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-            cursor.execute(sql, (
-                item['content_txt'],
-                item['title'],
-                item['source_url'],
-                item['post_date'],
-                item['sub_channel'],
-                item['post_user'],
-                item['tags'],
-                item['styles'],
-                item['content_html'],
-                item['hash_code'],
-                item['info_type'],
-                item['src_source_id'],
-                item['src_channel'],
-                item['src_ref'],
-                update_time))
-            spider.logDao.info(u'存微信详情：' + item['title'] + u'  成功')
-        else:
-            pass
-        cursor.close()
-        self.connector.commit()
+        # cursor = self.connector.cursor()
+        # if isinstance(item, ContentItem):
+        #     # 如果存在，则不做处理
+        #     spider.logDao.info(u'存微信详情：' + item['title'])
+        #     sql = "insert into weixin_detail (" \
+        #           "content_txt,title,source_url,post_date,sub_channel,post_user,tags,styles," \
+        #           "content_html,hash_code,info_type,src_source_id,src_channel,src_ref,update_time) " \
+        #           "values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) "
+        #
+        #     update_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+        #     cursor.execute(sql, (
+        #         item['content_txt'],
+        #         item['title'],
+        #         item['source_url'],
+        #         item['post_date'],
+        #         item['sub_channel'],
+        #         item['post_user'],
+        #         item['tags'],
+        #         item['styles'],
+        #         item['content_html'],
+        #         item['hash_code'],
+        #         item['info_type'],
+        #         item['src_source_id'],
+        #         item['src_channel'],
+        #         item['src_ref'],
+        #         update_time))
+        #     spider.logDao.info(u'存微信详情：' + item['title'] + u'  成功')
+        # else:
+        #     pass
+        # cursor.close()
+        # self.connector.commit()
         return item
 
     def close_spider(self, spider):
@@ -73,8 +74,8 @@ class MyImagesPipeline(ImagesPipeline):
     def __init__(self, store_uri, download_func=None, settings=None):
         super(MyImagesPipeline, self).__init__(store_uri, download_func=None, settings=None)
         botName = 'weixin'  # 注意需要更改。。。
-        self.fileUtil = FileUtil(u'/news/' + botName + u'/image/',
-                                 u'img/')
+        # self.fileUtil = FileUtil(u'/news/' + botName + u'/image/',
+        #                          u'img/')
 
     def get_media_requests(self, item, info):
         for image_url in item['image_urls']:

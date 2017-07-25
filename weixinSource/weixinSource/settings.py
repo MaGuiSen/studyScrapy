@@ -59,10 +59,10 @@ DOWNLOAD_DELAY = 20
 RANDOMIZE_DOWNLOAD_DELAY = True
 
 DOWNLOADER_MIDDLEWARES = {
-   'weixin.middlewares.ExceptionMiddleware': 543,
-   'weixin.middlewares.RandomUserAgent': 1
+   'weixinSource.middlewares.ExceptionMiddleware': 543,
+   'weixinSource.middlewares.RandomUserAgent': 1
 }
 
-ITEM_PIPELINES = {
-   'weixin.pipelines.MysqlPipeline': 50,
-}
+# ITEM_PIPELINES = {
+#    'weixin.pipelines.MysqlPipeline': 50,
+# }

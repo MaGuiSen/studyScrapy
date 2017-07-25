@@ -1,20 +1,18 @@
 # -*- coding: utf-8 -*-
-import hashlib
+import json
 import re
 
 import demjson
 import scrapy
-import time
 from scrapy import Selector
 
-from ..db.WxSourceDao import WxSourceDao
-from ..items import ContentItem
-
 from libMe.db.LogDao import LogDao
-from libMe.util import NetworkUtil
 from libMe.util import EncodeUtil
+from libMe.util import NetworkUtil
 from libMe.util import TimerUtil
 from ..db.CheckDao import CheckDao
+from ..db.WxSourceDao import WxSourceDao
+from ..items import ContentItem
 
 
 class WXDetailSpider(scrapy.Spider):
@@ -26,73 +24,47 @@ class WXDetailSpider(scrapy.Spider):
         super(WXDetailSpider, self).__init__(name=None, **kwargs)
         self.count = 0
         self.wxSourceDao = WxSourceDao()
-        self.request_stop = False
-        self.request_stop_time = 0
         self.logDao = LogDao(self.logger,'weixin_list_detail')
         self.checkDao = CheckDao()
+
+    def close(spider, reason):
+        spider.saveStatus('stop')
 
     def start_requests(self):
         # unKnow = ["didalive", "HIS_Technology", "CINNO_CreateMore", "ad_helper", "zhongduchongdu"]; 是搜索不到的
         # TODO..加上while可能有问题，有些可能抓不到
         # while True:
+            # 如果正在爬，就不请求
+            status = self.getStatus()
+            if status == 'running':
+                return
+            self.saveStatus('running')
             # 检测网络
-            if not NetworkUtil.checkNetWork():
+            while not NetworkUtil.checkNetWork():
                 # 20s检测一次
                 TimerUtil.sleep(20)
                 self.logDao.warn(u'检测网络不可行')
                 # continue
 
             # 检测服务器
-            if not NetworkUtil.checkService():
+            while not NetworkUtil.checkService():
                 # 20s检测一次
                 TimerUtil.sleep(20)
                 self.logDao.warn(u'检测服务器不可行')
                 # continue
 
-            if self.request_stop:
-                # 拨号生效时间不定，所以需要间隔一段时间再重试
-                timeSpace = time.time() - self.request_stop_time
-                if timeSpace / 60 <= 2:
-                    # 当时间间隔小于 2分钟 就不请求
-                    # continue
-                    pass
-                else:
-                    self.request_stop = False
-
-            # 进行爬虫
-            # TODO..清除cookie
             # 获取源  可用有值
             sources = self.wxSourceDao.queryWxUrl(isRandom=True)
 
             for source in sources:
-                if self.request_stop:
-                    self.logDao.warn(u'出现被绊或者出现网络异常，退出循环')
-                    # 当网络出现被绊的情况，就需要停止所有的请求等待IP更换
-                    break
                 (id, wx_name, wx_account, wx_url, wx_avatar, update_status, is_enable, update_time) = source
                 # 进行页面访问
                 newUrl = wx_url
                 self.logDao.warn(u'进行抓取:' + newUrl)
-                # TODO..no more duplicates will be shown (see DUPEFILTER_DEBUG to show all duplicates)
                 yield scrapy.Request(url=newUrl,
                                      meta={'request_type': 'weixin_page_list',
                                            'wx_account': wx_account, 'source': source, 'wx_account_id':id},
                                      callback=self.parseArticleList, dont_filter=True)
-                # 跑空线程2秒
-                TimerUtil.sleep(2)
-
-            # if self.request_stop:
-            #     # 需要发起通知 进行重新拨号
-            #     self.logDao.warn(u'发送重新拨号信号，请等待2分钟会尝试重新抓取')
-            #     self.request_stop_time = time.time()
-            #     pass
-            # else:
-            #     # 正常抓好之后，当前跑空线程40分钟，不影响一些还没请求完成的request
-            #     if sources:
-            #         self.logDao.info(u'请求了一轮了，但是可能还有没有请求完成，睡一会')
-            #         self.logDao.info(u'')
-            #         # TimerUtil.sleep(40 * 60)
-            #         pass
 
     def parseArticleList(self, response):
         body = EncodeUtil.toUnicode(response.body)
@@ -100,9 +72,10 @@ class WXDetailSpider(scrapy.Spider):
         title = selector.xpath('//title/text()').extract_first('').strip(u' ')
         isN = u"请输入验证码" == title
         if isN or response.status == 302:
-            self.logDao.info(u'访问过多被禁止')
-            # 更新状态为更新失败
-            self.request_stop = True
+            self.logDao.info(u'访问过多被禁止,重新拨号')
+            # 获取Ip # 同时空线程30s
+            NetworkUtil.getNewIp()
+            TimerUtil.sleep(30)
         else:
             source = response.meta['source']
             wx_account = response.meta['wx_account']
@@ -144,9 +117,10 @@ class WXDetailSpider(scrapy.Spider):
         title = selector.xpath('//title/text()').extract_first('').strip(u' ')
         isN = u"请输入验证码" == title
         if isN or response.status == 302:
-            self.logDao.info(u'访问过多被禁止')
-            # 更新状态为更新失败
-            self.request_stop = True
+            self.logDao.info(u'访问过多被禁止,重新拨号')
+            # 获取Ip # 同时空线程30s
+            NetworkUtil.getNewIp()
+            TimerUtil.sleep(30)
         else:
             wx_account = response.meta['wx_account']
             title = response.meta['title']
@@ -197,7 +171,7 @@ class WXDetailSpider(scrapy.Spider):
                 self.logDao.info(wx_account + u'得到文章：' + title + ":" + post_date + ':' + post_user)
                 self.logDao.info(u'得到文章：' + source_url)
 
-                # 得到hashCode
+                # 得到hashCode1
                 hash_code = self.checkDao.getHashCode(title, wx_account, 1)
 
                 self.saveFile(hash_code, body)
@@ -228,6 +202,23 @@ class WXDetailSpider(scrapy.Spider):
         with open(filename, 'wb') as f:
             f.write(content.encode("utf8"))
         self.log('Saved file %s' % filename)
+
+    def getStatus(self):
+        try:
+            with open("catchStatus.json", 'r') as load_f:
+                aa = json.load(load_f)
+                return aa.get('status')
+        finally:
+            if load_f:
+                load_f.close()
+
+    def saveStatus(self, status):
+        try:
+            with open("catchStatus.json", "w") as f:
+                json.dump({'status': status}, f)
+        finally:
+            if f:
+                f.close()
 
 
 

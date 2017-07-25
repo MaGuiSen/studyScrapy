@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import json
 import time
 
 import scrapy
@@ -21,47 +22,40 @@ class WXSourceSpider(scrapy.Spider):
         super(WXSourceSpider, self).__init__(name=None, **kwargs)
         self.count = 0
         self.wxSourceDao = WxSourceDao()
-        self.request_stop = False
         self.currIp = ''
-        self.request_stop_time = 0
         self.logDao = LogDao(self.logger,'weixin_source_catch')
+
+    def close(spider, reason):
+        spider.saveStatus('stop')
 
     def start_requests(self):
         # TODO..加上while可能有问题，有些抓不到
         # while True:
+            # 如果正在爬，就不请求
+            status = self.getStatus()
+            if status == 'running':
+                return
+            self.saveStatus('running')
+
             # 检测网络
-            if not NetworkUtil.checkNetWork():
+            while not NetworkUtil.checkNetWork():
                 # 20s检测一次
                 TimerUtil.sleep(20)
                 self.logDao.warn(u'检测网络不可行')
                 # continue
 
             # 检测服务器
-            if not NetworkUtil.checkService():
+            while not NetworkUtil.checkService():
                 # 20s检测一次
                 TimerUtil.sleep(20)
                 self.logDao.warn(u'检测服务器不可行')
                 # continue
-
-            if self.request_stop:
-                # 拨号生效时间不定，所以需要间隔一段时间再重试
-                timeSpace = time.time() - self.request_stop_time
-                if timeSpace / 60 <= 2:
-                    # 当时间间隔小于 2分钟 就不请求
-                    # continue
-                    pass
-                else:
-                    self.request_stop = False
 
             # 进行爬虫
             # 获取源  可用的，且（是更新失败的，或者最新的同时更新时间跟当前相比大于40分钟）
             sources = self.wxSourceDao.queryEnable(isRandom=True)
 
             for source in sources:
-                if self.request_stop:
-                    self.logDao.warn(u'出现被绊或者出现网络异常，退出循环')
-                    # 当网络出现被绊的情况，就需要停止所有的请求等待IP更换
-                    break
                 # 更新当前条状态为 更新中，如果更新失败或者被绊则更新为更新失败，更新成功之后设置为成功
                 (wx_name, wx_account, wx_url, wx_avatar, update_status, is_enable, update_time) = source
                 # 更新状态为更新中
@@ -70,31 +64,10 @@ class WXSourceSpider(scrapy.Spider):
                 url = 'http://weixin.sogou.com/weixin?type=1&s_from=input&ie=utf8&_sug_=n&_sug_type_=&query='
                 newUrl = url + wx_account
                 self.logDao.warn(u'进行抓取:'+newUrl)
-                # TODO..no more duplicates will be shown (see DUPEFILTER_DEBUG to show all duplicates)
                 yield scrapy.Request(url=newUrl,
                                      meta={'request_type': 'weixin_source', 'url': newUrl,
                                            'wx_account': wx_account, 'source': source},
                                      callback=self.parseList, dont_filter=True)
-                # 跑空线程2秒
-                TimerUtil.sleep(2)
-
-            if sources:
-                self.logDao.info(u'抓了一轮了，但是可能还有没有请求完成')
-
-            if self.request_stop:
-                # 则需要发起通知 进行重新拨号
-                # 但是并不知道什么时候网络重新拨号成功呢
-                # 记录当前时间
-                # 充值updating的状态为updateFail
-                self.wxSourceDao.resetUpdating()
-                self.logDao.warn(u'更改更新中状态为updateFail,防止下次取不到')
-                self.logDao.warn(u'发送重新拨号信号，请等待2分钟会尝试重新抓取')
-                self.request_stop_time = time.time()
-            else:
-                # 正常抓好之后，当前跑空线程40分钟，不影响一些还没请求完成的request
-                if sources:
-                    self.logDao.info(u'抓了一轮了，睡40分钟的空线程')
-                    # TimerUtil.sleep(40*60)
 
     def parseList(self, response):
         source = response.meta['source']
@@ -103,10 +76,12 @@ class WXSourceSpider(scrapy.Spider):
         body = EncodeUtil.toUnicode(response.body)
         # 判断被禁止 提示需要重启路由 清理cookie
         if response.status == 302:
-            self.request_stop = True
             # 更新状态为更新失败
-            self.logDao.warn(u'您的访问过于频繁')
+            self.logDao.warn(u'您的访问过于频繁,重新拨号')
             self.wxSourceDao.updateStatus(wx_account, 'updateFail')
+            # 获取Ip # 同时空线程30s
+            NetworkUtil.getNewIp()
+            TimerUtil.sleep(30)
         else:
             self.logDao.info(u'开始解析:' + wx_account)
             # 进行解析
@@ -127,3 +102,20 @@ class WXSourceSpider(scrapy.Spider):
                 self.logDao.info(u'没有抓到:' + wx_account_)
                 self.wxSourceDao.updateStatus(wx_account, 'none')
             pass
+
+    def getStatus(self):
+        try:
+            with open("catchStatus.json", 'r') as load_f:
+                aa = json.load(load_f)
+                return aa.get('status')
+        finally:
+            if load_f:
+                load_f.close()
+
+    def saveStatus(self, status):
+        try:
+            with open("catchStatus.json", "w") as f:
+                json.dump({'status': status}, f)
+        finally:
+            if f:
+                f.close()

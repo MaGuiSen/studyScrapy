@@ -7,37 +7,22 @@
 
 import time
 
-from mysql.connector import MySQLConnection
 from scrapy import Request
 from scrapy.pipelines.images import ImagesPipeline
 
+from libMe.db.Connector import Connector
 from libMe.util.FileUtil import FileUtil
 from .items import ContentItem
 
 
 class MysqlPipeline(object):
-    @classmethod
-    def from_settings(cls, settings):
-        """1、@classmethod声明一个类方法，而对于平常我们见到的则叫做实例方法。
-           2、类方法的第一个参数cls（class的缩写，指这个类本身），而实例方法的第一个参数是self，表示该类的一个实例
-           3、可以通过类来调用，就像C.f()，相当于java中的静态方法"""
-        dbParams = dict(
-            host=settings['MYSQL_HOST'],  # 读取settings中的配置
-            db=settings['MYSQL_DBNAME'],
-            user=settings['MYSQL_USER'],
-            passwd=settings['MYSQL_PASSWD'],
-            port=settings['MYSQL_PORT'],
-            charset='utf8',  # 编码要加上，否则可能出现中文乱码问题
-            use_unicode=False,
-        )
-        connector = MySQLConnection(**dbParams)
-        return cls(connector)  # 相当于dbpool付给了这个类，self中可以得到
-
-    def __init__(self, connector):
-        self.connector = connector
+    def __init__(self):
+        self.connector = Connector()
 
     def process_item(self, item, spider):
         cursor = self.connector.cursor()
+        if not cursor:
+            return item
         if isinstance(item, ContentItem):
             # 如果存在，则不做处理
             spider.logDao.info(u'存网易详情：' + item['title'])

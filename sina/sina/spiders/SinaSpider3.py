@@ -22,7 +22,7 @@ import demjson
 
 # 60s整体刷新一次
 class SinaSpider(scrapy.Spider):
-    name = 'sina2'
+    name = 'sina3'
     download_delay = 2.5  # 基础间隔 0.5*download_delay --- 1.5*download_delays之间的随机数
     handle_httpstatus_list = [301, 302, 204, 206, 403, 404, 500]  # 可以处理重定向及其他错误码导致的 页面无法获取解析的问题
 
@@ -68,28 +68,34 @@ class SinaSpider(scrapy.Spider):
 
         # 进行爬虫
 
-        url = 'http://roll.news.sina.com.cn/interface/rollnews_ch_out_interface.php?col=96&spec=&type=&ch=01&k=&offset_page=0&offset_num=0&num=60&asc=&page=1'
+        url = 'http://roll.news.sina.com.cn/interface/rollnews_ch_out_interface.php?col=96&spec=&type=&ch=01&k=&offset_page=0&offset_num=0&num=60&asc=&page='
         # url = 'http://tech.sina.com.cn/t/2017-07-24/doc-ifyihrit1274195.shtml'
 
         if self.request_stop:
             self.logDao.warn(u'出现被绊或者出现网络异常，退出循环')
             # 当网络出现被绊的情况，就需要停止所有的请求等待IP更换
             # break
-        r = random.uniform(0, 1)
-        newUrl = url + ('&r=' + str(r))
-        self.logDao.info(u"开始抓取列表：" + newUrl)
-        yield scrapy.Request(url=newUrl, meta={'request_type': 'sina_list', 'url': newUrl}, callback=self.parseList)
+        for page in range(1, 27):
+            if self.request_stop:
+                self.logDao.warn(u'出现被绊或者出现网络异常，退出循环')
+                # 当网络出现被绊的情况，就需要停止所有的请求等待IP更换
+                break
+            r = random.uniform(0, 1)
+            newUrl = url + str(page)
+            newUrl += ('&r=' + str(r))
+            self.logDao.info(u"开始抓取列表：" + newUrl)
+            yield scrapy.Request(url=newUrl, meta={'request_type': 'sina_list', 'url': newUrl}, callback=self.parseList)
 
-        # if self.request_stop:
-        #     # 需要发起通知 进行重新拨号
-        #     self.logDao.warn(u'发送重新拨号信号，请等待2分钟会尝试重新抓取')
-        #     self.request_stop_time = time.time()
-        #     pass
-        # else:
-        #     # 正常抓好之后，当前跑空线程10分钟，不影响一些还没请求完成的request
-        #     self.logDao.info(u'请求了一轮了，但是可能还有没有请求完成，睡一会10分钟')
-        #     TimerUtil.sleep(10 * 60)
-        #     pass
+            # if self.request_stop:
+            #     # 需要发起通知 进行重新拨号
+            #     self.logDao.warn(u'发送重新拨号信号，请等待2分钟会尝试重新抓取')
+            #     self.request_stop_time = time.time()
+            #     pass
+            # else:
+            #     # 正常抓好之后，当前跑空线程10分钟，不影响一些还没请求完成的request
+            #     self.logDao.info(u'请求了一轮了，但是可能还有没有请求完成，睡一会10分钟')
+            #     TimerUtil.sleep(10 * 60)
+            #     pass
 
     # TODO。。还没有找到被禁止的情况
     def parseList(self, response):
@@ -146,7 +152,6 @@ class SinaSpider(scrapy.Spider):
                 styleList.append(self.css[styleUrlHash])
             styles = CssUtil.compressCss(styleList).replace('\'', '"').replace('\\', '\\\\')
             styles = CssUtil.clearUrl(styles)
-            styles = styles.replace('overflow-x:hidden', '').replace('overflow:hidden', '')
 
             post_date = selector.xpath('//*[@id="pub_date"]/text() | //*[@class="titer"]/text()').extract_first('')
             post_date = post_date.replace('\r\n', '').strip(' ').replace(u'年', '-').replace(u'月', '-').replace(u'日', '')
@@ -182,7 +187,7 @@ class SinaSpider(scrapy.Spider):
                     content_txt.append(allTxt)
                 content_txt = '\n'.join(content_txt)
                 # 组装新的内容标签
-                outHtml = """<div class="content_wrappr_left"><div class="content"><div class="BSHARE_POP blkContainerSblkCon clearfix blkContainerSblkCon_16" id="artibody">${++content++}</div></div></div>"""
+                outHtml = """<div class="BSHARE_POP blkContainerSblkCon clearfix blkContainerSblkCon_16" id="artibody">${++content++}</div>"""
                 content_items = content_items.extract()
                 content_items = ''.join(content_items)
 
