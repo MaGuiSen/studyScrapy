@@ -149,7 +149,7 @@ class SinaSpider(scrapy.Spider):
             styles = styles.replace('overflow-x:hidden', '').replace('overflow:hidden', '')
 
             post_date = selector.xpath('//*[@id="pub_date"]/text() | //*[@class="titer"]/text()').extract_first('')
-            post_date = post_date.replace('\r\n', '').strip(' ').replace(u'年', '-').replace(u'月', '-').replace(u'日', '')
+            post_date = post_date.replace('\r\n', '').strip(' ').replace(u'年', '-').replace(u'月', '-').replace(u'日', ' ')
             src_ref = selector.xpath(
                 '//*[@id="media_name"]/a[1]/text() | //*[@class="source"]/a/text() | //*[@class="source"]/text()').extract_first(
                 '')
@@ -161,7 +161,7 @@ class SinaSpider(scrapy.Spider):
 
             content_html = selector.xpath('//*[@id="artibody"][1]')
             if len(content_html):
-                # 去除内部不需要的标签
+                # 去除内部不需要的标签  2017-07-24 19:23
                 # 完整案例：content_html.xpath('*[not(boolean(@class="entHdPic" or @class="ep-source cDGray")) and not(name(.)="script")]').extract()
                 content_items = content_html.xpath('*[not(boolean(@class="entHdPic")) and not(name(.)="script")]')
 

@@ -59,6 +59,8 @@ class MysqlPipeline(object):
                 spider.logDao.info(u'存微信详情：' + item['title'] + u'  成功')
             except Exception, e:
                 print e
+                spider.logDao.warn(u'存微信详情：' + item['title'] + u'  失败')
+                spider.logDao.warn(u'存微信详情错误信息：'+e.message)
         else:
             pass
         cursor.close()
@@ -174,6 +176,7 @@ class MyImageDownLoad(object):
                 url = x['url']
                 path = x['path']
                 # 上传照片
+                spider.logDao.warn(u'上传图片:' + url)
                 imgUrl = self.fileUtil.upload(path)
                 if imgUrl:
                     # 拿出内容，然后替换路径为url

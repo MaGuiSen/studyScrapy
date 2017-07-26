@@ -112,16 +112,18 @@ class TXDetailSpider(scrapy.Spider):
 
             category = selector.xpath('//*[@class="a_catalog"]/a/text()|//*[@class="a_catalog"]/text()').extract_first('')
 
-            post_user = selector.xpath('//*[@class="a_author"]/text()').extract_first('')
+            post_user = selector.xpath('//*[@class="a_author"]/text() | //*[@class="where"]/text()| //*[@class="where"]/a/text()').extract_first('')
 
             src_ref = selector.xpath('//*[@class="a_source"]/text() | //*[@class="a_source"]/a/text()').extract_first('')
 
-            a_time = selector.xpath('//*[@class="a_time"]/text()').extract_first('')
+            a_time = selector.xpath('//*[@class="a_time"]/text() | //*[@class="pubTime"]/text()').extract_first('')
 
-            if not a_time:
+            if a_time:
                 post_date = a_time
             else:
-                post_date = (post_date or '').replace(u'年', '-').replace(u'月', '-').replace(u'日', '')
+                post_date = (post_date or '')
+
+            post_date = post_date.replace(u'年', '-').replace(u'月', '-').replace(u'日', ' ')
 
             content_html = selector.xpath('//div[@id="Cnt-Main-Article-QQ"]')
             if len(content_html):
