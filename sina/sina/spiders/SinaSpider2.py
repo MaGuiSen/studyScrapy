@@ -150,6 +150,12 @@ class SinaSpider(scrapy.Spider):
 
             post_date = selector.xpath('//*[@id="pub_date"]/text() | //*[@class="titer"]/text()').extract_first('')
             post_date = post_date.replace('\r\n', '').strip(' ').replace(u'年', '-').replace(u'月', '-').replace(u'日', ' ')
+
+            try:
+                post_date = time.strftime("%Y-%m-%d %H:%M:%S", time.strptime(post_date, "%Y-%m-%d %H:%M"))
+            except Exception:
+                pass
+
             src_ref = selector.xpath(
                 '//*[@id="media_name"]/a[1]/text() | //*[@class="source"]/a/text() | //*[@class="source"]/text()').extract_first(
                 '')

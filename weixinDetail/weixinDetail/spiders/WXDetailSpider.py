@@ -4,6 +4,7 @@ import re
 
 import demjson
 import scrapy
+import time
 from scrapy import Selector
 
 from libMe.db.LogDao import LogDao
@@ -130,6 +131,12 @@ class WXDetailSpider(scrapy.Spider):
             self.logDao.info(u'开始解析文章：' + source_url)
             # 进行解析
             post_date = selector.xpath('//*[@id="post-date"]/text()').extract_first('')
+
+            try:
+                post_date = time.strftime("%Y-%m-%d %H:%M:%S", time.strptime(post_date, "%Y-%m-%d"))
+            except Exception:
+                pass
+
             post_user = selector.xpath('//*[@id="post-user"]/text()').extract_first('')
             content_html = selector.xpath('//*[@id="js_content"]')
             if len(content_html):

@@ -56,7 +56,7 @@ class MysqlPipeline(object):
                     item['src_ref'],
                     item['wx_account'],
                     update_time))
-                spider.logDao.info(u'存微信详情：' + item['title'] + u'  成功')
+                spider.logDao.info(u'存微信详情：' + item['title'] + u'  成功' + u' ' + item['post_date'])
             except Exception, e:
                 print e
                 spider.logDao.warn(u'存微信详情：' + item['title'] + u'  失败')

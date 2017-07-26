@@ -26,4 +26,11 @@ class Connector(object):
 
     def commit(self):
         if self.connector:
-            self.connector.commit()
+            if self.connector.is_connected():
+                self.connector.commit()
+            else:
+                try:
+                    self.connector.reconnect(attempts=10, delay=1)
+                    self.commit()
+                except Exception:
+                    pass

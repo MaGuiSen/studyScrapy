@@ -15,3 +15,12 @@
 # scheduler.add_job(tt2, 'interval', seconds=100,
 #                   start_date=datetime.datetime.now() + datetime.timedelta(seconds=2))
 # scheduler.start()
+import time
+
+post_date = '2013-10-10'
+try:
+    post_date = time.strftime("%Y-%m-%d %H:%M:%S", time.strptime(post_date, "%Y-%m-%d"))
+except Exception:
+    pass
+
+print post_date

@@ -125,6 +125,11 @@ class TXDetailSpider(scrapy.Spider):
 
             post_date = post_date.replace(u'年', '-').replace(u'月', '-').replace(u'日', ' ')
 
+            try:
+                post_date = time.strftime("%Y-%m-%d %H:%M:%S", time.strptime(post_date, "%Y-%m-%d %H:%M"))
+            except Exception:
+                pass
+
             content_html = selector.xpath('//div[@id="Cnt-Main-Article-QQ"]')
             if len(content_html):
                 # 去除内部不需要的标签

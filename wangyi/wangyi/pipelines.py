@@ -53,9 +53,10 @@ class MysqlPipeline(object):
                     item['src_channel'],
                     item['src_ref'],
                     update_time))
-                spider.logDao.info(u'存网易详情：' + item['title'] + u'  成功')
+                spider.logDao.info(u'存网易详情：' + item['title'] + u'  成功' + u' ' + item['post_date'])
             except Exception, e:
-                print e
+                spider.logDao.warn(u'存网易详情：' + item['title'] + u'  失败')
+                spider.logDao.warn(u'存网易详情错误信息：' + e.message)
         else:
             pass
         cursor.close()
