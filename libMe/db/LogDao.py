@@ -40,11 +40,12 @@ class LogDao(object):
         return results or []
 
     def save(self, info, level, belong_to='', attach=''):
+        self.logger.info(belong_to + info)
+        if True:
+            return
         cursor = self.connector.cursor()
         if not cursor:
             return
-        self.logger.info(belong_to+info)
-        cursor = self.connector.cursor()
         sql_query = 'insert into scrapy_log (info,level,save_time,belong_to,attach) values (%s,%s,%s,%s,%s)'
         save_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
         cursor.execute(sql_query, (info, level, save_time, belong_to, attach))
