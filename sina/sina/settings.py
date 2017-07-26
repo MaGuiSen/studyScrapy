@@ -61,7 +61,7 @@ DOWNLOADER_MIDDLEWARES = {
 
 #开启图片管道
 ITEM_PIPELINES = {
-   'sina.pipelines.MyImagesPipeline': 40,
+   'sina.pipelines.MyImageDownLoad': 40,
    'sina.pipelines.MysqlPipeline': 50,
 }
 

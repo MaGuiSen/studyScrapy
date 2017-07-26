@@ -61,7 +61,7 @@ DOWNLOADER_MIDDLEWARES = {
 
 #开启图片管道
 ITEM_PIPELINES = {
-   'weixinDetail.pipelines.MyImagesPipeline': 40,
+   'weixinDetail.pipelines.MyImageDownLoad': 40,
    'weixinDetail.pipelines.MysqlPipeline': 50,
 }
 

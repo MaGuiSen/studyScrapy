@@ -29,7 +29,7 @@ DOWNLOADER_MIDDLEWARES = {
 }
 #开启图片管道
 ITEM_PIPELINES = {
-   'bookDouban.pipelines.MyImagesPipeline': 40,
+   'bookDouban.pipelines.MyImageDownLoad': 40,
    'bookDouban.pipelines.MysqlPipeline': 50,
 
 }

@@ -60,7 +60,7 @@ DOWNLOADER_MIDDLEWARES = {
 
 #开启图片管道
 ITEM_PIPELINES = {
-   'tengxun.pipelines.MyImagesPipeline': 40,
+   'tengxun.pipelines.MyImageDownLoad': 40,
    'tengxun.pipelines.MysqlPipeline': 50,
 }
 

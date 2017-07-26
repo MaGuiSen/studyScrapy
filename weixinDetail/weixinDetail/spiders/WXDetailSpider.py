@@ -99,7 +99,7 @@ class WXDetailSpider(scrapy.Spider):
                             title = app_msg_ext_info.get('title') or ''
                             # 如果存在则不抓取
                             if self.checkDao.checkExist(title, wx_account, 1):
-                                self.logDao.info(u'已经存在' + wx_account + ':' + title + ':' + detailUrl)
+                                self.logDao.info(u'已经存在' + wx_account + ':' + title)
                                 continue
                             detailUrl = app_msg_ext_info['content_url'] or ''
                             detailUrl = "http://mp.weixin.qq.com" + detailUrl

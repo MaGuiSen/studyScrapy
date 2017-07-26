@@ -1,9 +1,23 @@
 # -*- coding: utf-8 -*-
 from qcloud_cos import CosClient
 from qcloud_cos import UploadFileRequest
+import os
 
 
-class FileUtil(object):
+def fileIsExist(pathAndName):
+    return os.path.exists(pathAndName)
+
+
+def dirIsExist(path):
+    return os.path.isdir(path)
+
+
+def createDir(path):
+    if not os.path.isdir(path):
+        os.mkdir(path)
+
+
+class UploadUtil(object):
     def __init__(self, cos_path, local_path):
         appid = 1251316472  # 替换为用户的appid
         secret_id = u'AKID3atJdSnNR1Bwf1l4HnnYaSMzpBArC4A5'  # 替换为用户的secret_id
