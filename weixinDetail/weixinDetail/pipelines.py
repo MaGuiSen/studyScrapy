@@ -15,6 +15,7 @@ from libMe.db.Connector import Connector
 from libMe.util.FileUtil import UploadUtil
 from libMe.util import TimerUtil
 from util import EncryptUtil
+from util import EncodeUtil
 from util import FileUtil
 from .items import ContentItem
 
@@ -60,7 +61,7 @@ class MysqlPipeline(object):
             except Exception, e:
                 print e
                 spider.logDao.warn(u'存微信详情：' + item['title'] + u'  失败')
-                spider.logDao.warn(u'存微信详情错误信息：'+e.message)
+                spider.logDao.warn(e.msg)
         else:
             pass
         cursor.close()

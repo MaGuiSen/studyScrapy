@@ -135,7 +135,9 @@ class TXDetailSpider(scrapy.Spider):
                 # 去除内部不需要的标签
                 # 完整案例：content_html.xpath('*[not(boolean(@class="entHdPic" or @class="ep-source cDGray")) and not(name(.)="script")]').extract()
                 content_items = content_html.xpath('*[not(name(.)="script") and not(name(.)="style")  and not(name(.)="iframe") and not(boolean(@class="rv-root-v2 rv-js-root"))]')
-
+                if not len(content_items):
+                    self.logDao.info(u'不存在内容：' + source_url)
+                    return
                 # 得到纯文本
                 content_txt = []
                 for item in content_items:

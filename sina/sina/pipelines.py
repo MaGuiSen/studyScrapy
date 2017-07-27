@@ -56,7 +56,7 @@ class MysqlPipeline(object):
                 spider.logDao.info(u'存新浪详情：' + item['title'] + u'  成功'+ u' ' + item['post_date'])
             except Exception, e:
                 spider.logDao.warn(u'存新浪详情：' + item['title'] + u'  失败')
-                spider.logDao.warn(u'存新浪详情错误信息：' + e.message)
+                spider.logDao.warn(e.msg)
         else:
             pass
         cursor.close()

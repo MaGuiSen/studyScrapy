@@ -17,7 +17,7 @@ from ..items import ContentItem
 
 
 class WXDetailSpider(scrapy.Spider):
-    name = 'wx_detail'
+    name = 'wx_detail_test'
     download_delay = 20  # 基础间隔 0.5*download_delay --- 1.5*download_delays之间的随机数
     handle_httpstatus_list = [301, 302, 204, 206, 403, 404, 500]  # 可以处理重定向及其他错误码导致的 页面无法获取解析的问题
 
@@ -32,85 +32,18 @@ class WXDetailSpider(scrapy.Spider):
         spider.saveStatus('stop')
 
     def start_requests(self):
-        # unKnow = ["didalive", "HIS_Technology", "CINNO_CreateMore", "ad_helper", "zhongduchongdu"]; 是搜索不到的
-        # TODO..加上while可能有问题，有些可能抓不到
-        # while True:
-            # 如果正在爬，就不请求
-            status = self.getStatus()
-            if status == 'running':
-                return
-            self.saveStatus('running')
-            # 检测网络
-            while not NetworkUtil.checkNetWork():
-                # 20s检测一次
-                TimerUtil.sleep(20)
-                self.logDao.warn(u'检测网络不可行')
-                # continue
-
-            # 检测服务器
-            while not NetworkUtil.checkService():
-                # 20s检测一次
-                TimerUtil.sleep(20)
-                self.logDao.warn(u'检测服务器不可行')
-                # continue
-
-            # 获取源  可用有值
-            sources = self.wxSourceDao.queryWxUrl(isRandom=True)
-
-            for source in sources:
-                (id, wx_name, wx_account, wx_url, wx_avatar, update_status, is_enable, update_time) = source
-                # 进行页面访问
-                newUrl = wx_url
-                self.logDao.warn(u'进行抓取:' + newUrl)
-                yield scrapy.Request(url=newUrl,
-                                     meta={'request_type': 'weixin_page_list',
-                                           'wx_account': wx_account, 'source': source, 'wx_account_id':id},
-                                     callback=self.parseArticleList, dont_filter=True)
-
-    def parseArticleList(self, response):
-        body = EncodeUtil.toUnicode(response.body)
-        selector = Selector(text=body)
-        title = selector.xpath('//title/text()').extract_first('').strip(u' ')
-        isN = u"请输入验证码" == title
-        if isN or response.status == 302:
-            self.logDao.info(u'访问过多被禁止,重新拨号')
-            # 获取Ip # 同时空线程30s
-            NetworkUtil.getNewIp()
-            TimerUtil.sleep(30)
-        else:
-            source = response.meta['source']
-            wx_account = response.meta['wx_account']
-            wx_account_id = response.meta['wx_account_id']
-            self.logDao.info(u'开始解析列表:' + wx_account)
-            # 进行解析
-            articleJS = selector.xpath('//script/text()').extract()
-            for js in articleJS:
-                if 'var msgList = ' in js:
-                    p8 = re.compile('var\s*msgList\s*=.*;')
-                    matchList = p8.findall(js)
-                    for match in matchList:
-                        match = match.lstrip('var msgList = ').rstrip(';')
-                        # 格式化
-                        articles = demjson.decode(match) or {}
-                        articles = articles['list'] or []
-                        self.logDao.info(u'匹配到文章列表' + wx_account)
-                        for article in articles:
-                            app_msg_ext_info = article.get('app_msg_ext_info') or {}
-                            desc = app_msg_ext_info.get('digest') or ''
-                            title = app_msg_ext_info.get('title') or ''
-                            # 如果存在则不抓取
-                            if self.checkDao.checkExist(title, wx_account, 1):
-                                self.logDao.info(u'已经存在' + wx_account + ':' + title)
-                                continue
-                            detailUrl = app_msg_ext_info['content_url'] or ''
-                            detailUrl = "http://mp.weixin.qq.com" + detailUrl
-                            detailUrl = detailUrl.replace("amp;", "")
-                            self.logDao.info(u'抓取' + wx_account + ':' + title + ':' + detailUrl)
-                            yield scrapy.Request(url=detailUrl,
-                                                 meta={'request_type': 'weixin_detail', 'wx_account': wx_account,
-                                                       "source": source, "title": title, 'wx_account_id':wx_account_id,
-                                                       "source_url": detailUrl},
-                                                 callback=self.parseArticle)
+        title = u'专访微软洪小文：AI绝非无所不能 要想进步需关注基础研究'
+        # 如果存在则不抓取
+        wx_account = 'DataScientistUnion'
+        if self.checkDao.checkExist(title, wx_account, 1):
+            self.logDao.info(u'已经存在' + wx_account + ':' + title)
+        detailUrl = 'http://mp.weixin.qq.com/s?timestamp=1501104564&src=3&ver=1&signature=*2eVTfhPO6vFnvRZ*flkLIln1NY4W8Z8GggTkr42MdgKtGnvioP7FUCkNHgAxf3kQjbGG8soVgymT*ECoWYIWd9jMRugBb12cM9Y9ACUpiSrxwUSVqEiycT0wKiq0Ixc-NV*UUoU5bUmFLoSCfJz3u81flXb7ofqRgXwH6v03jA='
+        self.logDao.info(u'抓取' + wx_account + ':' + title + ':' + detailUrl)
+        yield scrapy.Request(url=detailUrl,
+                             meta={'request_type': 'weixin_detail', 'wx_account': wx_account,
+                                   "title": title, 'wx_account_id': 67,
+                                   "source_url": detailUrl},
+                             callback=self.parseArticle)
 
     def parseArticle(self, response):
         body = EncodeUtil.toUnicode(response.body)
@@ -146,7 +79,6 @@ class WXDetailSpider(scrapy.Spider):
                 if not len(content_items):
                     self.logDao.info(u'不存在内容：' + source_url)
                     return
-
                 # 得到纯文本
                 content_txt = []
                 for item in content_items:
@@ -205,7 +137,7 @@ class WXDetailSpider(scrapy.Spider):
                 contentItem['src_ref'] = ''
                 contentItem['wx_account'] = wx_account
 
-                return contentItem
+                # return contentItem
 
     def saveFile(self, title, content):
         filename = 'html/%s.html' % title

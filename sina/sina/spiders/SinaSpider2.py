@@ -171,6 +171,9 @@ class SinaSpider(scrapy.Spider):
                 # 完整案例：content_html.xpath('*[not(boolean(@class="entHdPic" or @class="ep-source cDGray")) and not(name(.)="script")]').extract()
                 content_items = content_html.xpath('*[not(boolean(@class="entHdPic")) and not(name(.)="script")]')
 
+                if not len(content_items):
+                    self.logDao.info(u'不存在内容：' + source_url)
+                    return
                 # 得到纯文本
                 content_txt = []
                 for item in content_items:
