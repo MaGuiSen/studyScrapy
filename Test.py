@@ -1,206 +1,196 @@
-# # -*- coding: utf-8 -*-
-# import datetime
-# from apscheduler.schedulers.blocking import BlockingScheduler
-#
-# def tt():
-#     print 1
-#
-# def tt2():
-#     print 2
-#
-# scheduler = BlockingScheduler(daemonic=False)
-# # 先马上开始执行
-# scheduler.add_job(tt, 'date')
-# # 后再抓取之后的某个时间段开始间隔执行
-# scheduler.add_job(tt2, 'interval', seconds=100,
-#                   start_date=datetime.datetime.now() + datetime.timedelta(seconds=2))
-# scheduler.start()
+# -*- coding: utf-8 -*-
+# # import datetime
+# # from apscheduler.schedulers.blocking import BlockingScheduler
+# #
+# # def tt():
+# #     print 1
+# #
+# # def tt2():
+# #     print 2
+# #
+# # scheduler = BlockingScheduler(daemonic=False)
+# # # 先马上开始执行
+# # scheduler.add_job(tt, 'date')
+# # # 后再抓取之后的某个时间段开始间隔执行
+# # scheduler.add_job(tt2, 'interval', seconds=100,
+# #                   start_date=datetime.datetime.now() + datetime.timedelta(seconds=2))
+# # scheduler.start()
 # import time
 #
-# post_date = '2013-10-10'
+# post_date = '2017-07-24 18:09:00'
 # try:
-#     post_date = time.strftime("%Y-%m-%d %H:%M:%S", time.strptime(post_date, "%Y-%m-%d"))
+#     post_date = time.strftime("%Y-%m-%d %H:%M:%S", time.strptime(post_date, "%Y-%m-%d %H:%M:%S"))
 # except Exception:
 #     pass
-#
 # print post_date
-
+# # import requests
+# #
+# # result = requests.get('http://mp.weixin.qq.com/profile?src=3&timestamp=1501135271&ver=1&signature=Eh4M*cPhiH3jlAIc5oEFJ9jrheYhxfUS4qVDJXNkdx8*IhB8VuuxdhHz-26cRm7x1eAleQkPyvrDJbap*COCJg==',
+# #                        timeout=10,headers={'User-Agent':'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.110 Safari/537.36'})
+# # req_code = result.status_code
+# # print result.content
+# # import webbrowser
+# #
+# # url = 'http://mp.weixin.qq.com/profile?src=3&timestamp=1501134928&ver=1&signature=Z8gLeXZ4R09gTTsC*Gcezxtso7phoO9CDXJYms2LbugRThJ05H0OYbWXQz**k6CSm-zj6ENur-G-Q9jiF222Fg=='
+# # webbrowser.open(url)
+# # print webbrowser.get()
+import re
 
 value = '''
-
-
-手
-机
-电
-脑
-品
-牌
-画
-像
-
-
-
-童鞋们大噶猴啊，端午节长假过得快不快乐、顺不顺心、酸不酸爽啊？话说最近京城大宝剑局面不好，Mr.Zhou在手机游戏里玩起了“大宝剑”，坐在办公桌边，点起雪茄、长吸一口、仰后一躺、岔开双腿、双手滴溜溜动，用的不是阿珂就是兰陵王，这叫一个猥琐啊，哪里只是发育啊，完全是发情的节奏……话说北京提前入夏，导致QuestMobile程序猿的过剩春心无处萌发，加上党中央突然牛逼了，端午放假高速竟然没有免费，没有免，没有……这个端午，大家光着膀子在屋里加班，于是就有了这篇牛逼文章：千万别觉得这是关公战秦琼、大刀棒子打不着，本文从用户画像、电商渠道等角度，对手机领域的小米和锤子、PC领域的联想和惠普进行针对性分析，让大家知道，竞争，从来都不靠模糊的概念，靠的是实打实的数据。真相只有一个    你我都需直面鲜血
-
-PART1：Communication——手机
-
-手机终端厂商间激战正酣，从未停歇…… 
-同样强调品牌调性，同样强调用户情怀，那么，究竟是哪些人在为发烧而生的小米买单，又是哪些用户在为偏执于情怀与梦想的锤子喝彩呢？ 
-这些用户又具备怎样的画像属性和行为偏好呢？
-让我们一一揭开他们的神秘面纱
-
-小米 or 锤子，完美的发烧还是情怀的偏执
-
-
-
-男性更关注手机信息，锤子粉丝更偏年轻化
-整体来看，男性用户更加关注手机品牌信息，且年轻人是关注主流
-相比而言，锤子男性粉丝占比更高，且更偏年轻化，24岁以下粉丝占比近3成；小米粉丝则相对成熟化，25-30岁人群占比最高
-
-
-
-锤子粉丝一二线城市占比更高，消费能力更强
-小米手机定位覆盖人群较广，有定位低端的红米手机，强调性能配置的新一代小米手机等系列产品，因此，其粉丝城市等级分布较为均匀
-锤子手机则定位于有经济实力、30岁左右、开始怀旧的男性白领人群，品牌强调情怀和工匠精神，故而其一二线城市粉丝占比更高，线上消费能力较小米粉丝也更强
-
-
-
-移动互联网主要赛道APP偏好
-短视频：小米粉丝最爱秒拍，锤子粉丝自带文青属性，对美拍偏好性更强
-网络直播：小米粉丝更爱映客，锤子粉丝更爱YY
-综合资讯：综合资讯平台偏好较为一致，更偏爱腾讯新闻与搜狐新闻
-综合电商：粉丝对综合电商主要平台需求整体较为强烈，需求主要集中在唯品会、手机京东
-
-
-
-
-
-小米与锤子粉丝主要电商平台使用粘性分布
-小米粉丝和锤子粉丝在主要电商平台的使用习性上整体一致，在手机淘宝和手机京东的粘性最强
-从人均使用次数来看，小米与锤子用户均在手机淘宝、手机京东两大APP上表现活跃；从单次使用时长来看，小米粉丝在手机京东和苏宁易购平台表现活跃，而锤子粉丝则在手机京东和手机淘宝平台更活跃
-
-
-
-
-小米粉丝与锤子粉丝移动应用偏好
-百度手机输入法和手机京东成为两大品牌粉丝的共同需求，由此看来，小米与锤子粉丝在移动互联网需求方面，相似性极高
-
-
-
-
-
-
-
-PART2：Computer——电脑
-
-联想作为个人与商务电脑的民族品牌领航者，已成为国人电脑品牌首选；而作为资深的商务电脑智造者的惠普，也同样吸引着不少眼球。
-一个是个人PC民族品牌领航者，一个是商务机中的老牌战斗机，又是哪些人在关注这些品牌的动向？在玩转PC与手机的时代，他们在移动互联网端又有着怎样的偏好和行为呢？
-
-
-联想VS惠普，民族的还是世界的
-
-
-
-
-联想男性粉丝更多，年轻人更加关注联想品牌
-联想粉丝男性用户占比更高，25-30岁人群占比最高，意味着在职场处于职业上升期的年轻人最关注
-惠普用户女性粉丝占比较联想更高，年龄分布较为均衡，31-40岁间用户占比较联想更高，这部分人群事业相对成熟，且消费能力更强
-
-
-
-
-联想粉丝线上消费能力更强，惠普粉丝更多分布在一二线城市
-联想电脑的产品线主要针对家用和商务市场，因此其城市等级分布较为广泛，从粉丝线上消费能力来看，联想粉丝消费能力整体更高
-惠普主打商务系电脑，其粉丝分布更加集中在一二线城市，其一线城市粉丝占比较联想超12%
-
-
-
-联想与惠普粉丝移动互联网热门赛道APP偏好
-短视频：联想粉丝最爱美拍，惠普粉丝最爱土豆
-网络直播：联想粉丝最爱YY和虎牙，较整体人群而言，惠普粉丝对网络直播热情普遍较低，对虎牙需求相对较强烈
-综合资讯：联想粉丝对综合资讯类需求整体较为强烈，尤其偏爱腾讯新闻和天天快报；惠普粉丝整体综合资讯类需求较弱，最喜欢一点资讯
-综合电商：较惠普粉丝较低的综合电商需求而言，联想粉丝拥有更强烈的电商需求，偏爱唯品会和手机京东
-
-
-
-
-
-惠普与联想粉丝主要电商平台使用粘性分布
-联想粉丝在手机淘宝和手机京东的粘性最强，惠普粉丝则在手机淘宝和唯品会两大平台粘性最强
-从人均使用次数来看，联想与惠普粉丝在手机淘宝的高频使用偏好性更强；从单次使用时长来看，联想与惠普粉丝在手机京东平台的偏好性更强
-
-
-
-
-
-最后，各路大神，三个福利送上：
-
-
-
-▼
-
-
-QuestMobile“Truth家族”，标准版、渠道版、营销版和极速版，一并邀您试用，直戳“阅读原文”提交申请邮箱信息。
-
-试用QuestMobile “Truth家族”邀您试用正所谓“送佛送上西”，趁着Mr.Zhou出去“手熟”去了，Mr.QM偷偷将这几款产品的试用全部开放，大家直接点击左下角“阅读原文”进行申请。点击“阅读原文”提交产品试用申请
-
-
-
-QuestMobile-Plus产品全新上线，邀您试用，直戳“阅读原文”提交申请邮箱信息。
-
-试用QuestMobile-Plus产品全新上线，邀您试用全面归拢App外各场景下全部用户流量，多维度分析包括但不限于H5页面、移动端WAP、APP内某项功能在内的各类服务受众规模，一句话：Plus在手，全网通、全球通不是梦。点击“阅读原文”提交产品试用申请
-
-
-
-QuestMobile “Growth家族”, 国内移动互联量化营运效率提升平台，基于渠道精分、用户精分和营销精分三大主题版本，邀您试用。
-
-
-试用QuestMobile “Growth家族”邀您试用八大量化精分模型：增长黑客模型、刷量防御模型、同期群分析模型、用户画像模型、流失预测模型、病毒传播K因子模型、归因模型、LTV模型，以及，近百项功能指标的量化运营利器。一句话：以前，我精神分裂了；后来，我们治好了；所以，精分，我们是最专业的！点击“阅读原文”提交产品试用申请
-
-
-❤
-
-数据咨询及申请产品演示请联系
-
-
-
-   华北地区   
-Fern
-(86) 185 1176 5667
-Fern@questmobile.com.cn
-
-   华东地区   
-Mark
-(86)  185 1610 2818
-Mark@questmobile.com.cn
-
-   华南地区   
-Bolt
-(86) 139 2237 7631
-Pb@questmobile.com.cn
-
-   投资机构   
-Darren
-(86) 186 1006 8811
-Darren@questmobile.com.cn
-
-
-
-            
-
-▼
-
-更 多 干 货 和 好 货
-关 注 我 就 知 道 辣
-
-▼
-
-想了解更多请浏览www.questmobile.com.cn
-
-部分精彩文章，更多请查看历史消息：
-追剧、追星、追热点：到底哪些小伙伴在跟你一起疯？2017上海国际车展：逛车展的人用什么APP？\(^o^)/我们进军全球了：QuestMobile全球移动互联网报告在你里面，他干啥了？QuestMobile Inapp分析QuestMobile-移动互联网2017春季报告：我们想聊聊10亿+用户之后的APP江湖好吧，让我们认真聊聊小程序吧！房产服务APP：不到两千万用户厮杀的背后，从信息连接到线下物业服务QuestMobile手游报告：腾讯PK网易，谁才是真王？婚恋交友“A（爱）P（啪）P（啪）”哪家强？Mr.QM告诉你真相😝QuestMobile春节大赏：人群迁徙图、除夕APP榜，还有四线及以下城市用户常用手机及APP榜QuestMobile2016年度APP价值榜：10亿月活，还剩多少洪荒之力可挖？鬼知道你的APP经历了什么？QuestMobile新产品“快调研”告诉你答案QuestMobile的新年礼物：跨屏版数据产品一年期免费使用QuestMobile“上海人”常用APP榜：帝都霾太大，假装在魔都QuestMobile“90后”常用APP榜：QQ确实拔尖，不过只是跟整体人群相比而已“有车一族”用户画像及有车一族各个领域APP使用偏好2016年双11大战哪家强？答案只在QuestMobile电商榜9月金融理财APP实力榜：用户画像、TGI以及各行业各家APP金融理财人群TGI（不绕死你不松口）传说中“QuestMobile的神秘代码”与Growth营运精分案例TOP 2000 APP榜没见过吧？| QuestMobile2016年秋季盘点带你纵横中国移动互联网！在线视频MAU突破8亿，精细化运营将成制胜关键？中国区手机游戏MAU实力榜 | QuestMobileQuestMobile2016年中盘点，如何走过创业之夏？8000万用户，“楚门”背后有多少真实的世界？QuestMobile 2016春季APP实力榜：总用户量突破9.27亿，微信、QQ、淘宝MAU位居前三2015年终APP价值榜：钱多人傻玩APP？错，完整的移动互联网江湖是靠价值支撑的！QuestMobile2015上半年App状况盘点QuestMobile：2014年度APP价值榜
-点击【阅读原文】，提交QuestMobile “Truth家族”、“Growth家族”产品试用申请！
-☟
+html{-ms-text-size-adjust:100%;-webkit-te
+xt-size-adjust:100%;line-height:1.6}body{-webkit-touch-
+callout:none;font-family:-apple-system-font,"Helvetica Neue"
+,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-ser
+if;background:#f3f3f3;line-height:inherit}body.rich_me
+dia_empty_extra{background-color:#f3f3f3}body.rich_media_empty_
+extra .rich_media_area_primary:before{display:none}h1,h2,h3,h4,h5,
+h6{font-weight:400;font-size:16px}*{margin:0;padding:0}a{color:#60
+7fa6;text-decoration:none}.rich_media_inner{font-size:16px;word-wr
+ap:break-word;-webkit-hyphens:auto;-ms-hyphens:auto;hyphens:auto}.
+rich_media_area_primary{position:relative;padding:20px
+ 15px 15px;background-color:#fff}.rich_media_area_primary:b
+ efore{content:" ";position:absolute;left:0;top:0;width:100
+ %;height:1px;border-top:1px solid #e5e5e5;-webkit-transfor
+ m-origin:0 0;transform-origin:0 0;-webkit-transform:scaleY
+ (0.5);transform:scaleY(0.5);top:auto;bottom:-2px}.rich_med
+ ia_area_primary .original_img_wrp{display:inline-block;fon
+ t-size:0}.rich_media_area_primary .original_img_wrp .tips_
+ global{display:block;margin-top:.5em;font-size:14px;text-a
+ lign:right;width:auto;overflow:hidden;text-overflow:ellips
+ is;white-space:nowrap;word-wrap:normal}.rich_media_area_ex
+ tra{padding:0 15px 0}.rich_media_title{margin-bottom:10px;
+ line-height:1.4;font-weight:400;font-size:24px}.rich_media
+ _meta_list{margin-bottom:18px;line-height:20px;font-size:0
+ }.rich_media_meta_list em{font-style:normal}.rich_media_me
+ ta{display:inline-block;vertical-align:middle;margin-right
+ :8px;margin-bottom:10px;font-size:16px}.meta_original_tag{
+ display:inline-block;vertical-align:middle;padding:1px .5e
+ m;border:1px solid #9e9e9e;color:#8c8c8c;border-top-left-r
+ adius:20% 50%;-moz-border-radius-topleft:20% 50%;-webkit-b
+ order-top-left-radius:20% 50%;border-top-right-radius:20%
+ 50%;-moz-border-radius-topright:20% 50%;-webkit-border-top
+ -right-radius:20% 50%;border-bottom-left-radius:20% 50%;-m
+ oz-border-radius-bottomleft:20% 50%;-webkit-border-bottom-
+ -radius:20% 50%;border-bottom-right-radius:20% 50%;-moz-bo
+ rder-radius-bottomright:20% 50%;-webkit-border-bottom-righ
+ t-radius:20% 50%;font-size:15px;line-height:1.1}.meta_ente
+ rprise_tag img{width:30px;height:30px !important;display:b
+ lock;position:relative;margin-top:-3px;border:0}.rich_medi
+ a_meta_text{color:#8c8c8c}span.rich_media_meta_nickname{di
+ splay:none}.rich_media_thumb_wrp{margin-bottom:6px}.rich_m
+ edia_thumb_wrp .original_img_wrp{display:block}.rich_media
+ _thumb{display:block;width:100%}.rich_media_content{overfl
+ ow:hidden;color:#3e3e3e}.rich_media_content *{max-width:10
+ 0% !important;box-sizing:border-box !important;-webkit-box
+ -sizing:border-box !important;word-wrap:break-word !import
+ ant}.rich_media_content p{clear:both;min-height:1em}.rich_
+ media_content em{font-style:italic}.rich_media_content fie
+ ldset{min-width:0}.rich_media_content .list-paddingleft-2{
+ padding-left:30px}.rich_media_content blockquote{margin:0;
+ padding-left:10px;border-left:3px solid #dbdbdb}img{height
+ :auto !important}@media screen and device-aspect-ratio:2/3
+ ,screen and device-aspect-ratio:40/71{.meta_original_tag{p
+ adding-top:0}}@media(min-device-width:375px) and (max-devi
+ ce-width:667px) and (-webkit-min-device-pixel-ratio:2){.mm
+ _appmsg .rich_media_inner,.mm_appmsg .rich_media_meta,.mm_
+ appmsg .discuss_list,.mm_appmsg .rich_media_extra,.mm_appm
+ sg .title_tips .tips{font-size:17px}.mm_appmsg .meta_origi
+ nal_tag{font-size:15px}}@media(min-device-width:414px) and
+  (max-device-width:736px) and (-webkit-min-device-pixel-r
+  atio:3){.mm_appmsg .rich_media_title{font-size:25px}}@me
+  dia screen and (min-width:1024px){.rich_media{width:740p
+  x;margin-left:auto;margin-right:auto}.rich_media_inner{p
+  adding:20px}body{background-color:#fff}}@media screen an
+  d (min-width:1025px){body{font-family:"Helvetica Neue",H
+  elvetica,"Hiragino Sans GB","Microsoft YaHei",Arial,sans
+  -serif}.rich_media{position:relative}.rich_media_inner{b
+  ackground-color:#fff;padding-bottom:100px}}.radius_avata
+  r{display:inline-block;background-color:#fff;padding:3px
+  ;border-radius:50%;-moz-border-radius:50%;-webkit-border
+  -radius:50%;overflow:hidden;vertical-align:middle}.radiu
+  s_avatar img{display:block;width:100%;height:100%;border
+  -radius:50%;-moz-border-radius:50%;-webkit-border-radius
+  :50%;background-color:#eee}.cell{padding:.8em 0;display:
+  ;position:relative}.cell_hd,.cell_bd,.cell_ft{display:ta
+  ble-cell;vertical-align:middle;word-wrap:break-word;word
+  -break:break-all;white-space:nowrap}.cell_primary{width:
+  2000px;white-space:normal}.flex_cell{padding:10px 0;disp
+  lay:-webkit-box;display:-webkit-flex;display:-ms-flexbox
+  ;display:flex;-webkit-box-align:center;-webkit-align-ite
+  ms:center;-ms-flex-align:center;align-items:center}.flex
+  _cell_primary{width:100%;-webkit-box-flex:1;-webkit-flex
+  :1;-ms-flex:1;box-flex:1;flex:1}.original_tool_area{disp
+  lay:block;padding:.75em 1em 0;-webkit-tap-highlight-colo
+  r:rgba(0,0,0,0);color:#3e3e3e;border:1px solid #eaeaea;m
+  argin:20px 0}.original_tool_area .tips_global{position:r
+  elative;padding-bottom:.5em;font-size:15px}.original_too
+  l_area .tips_global:after{content:" ";position:absolute;
+  left:0;bottom:0;right:0;height:1px;border-bottom:1px sol
+  id #dbdbdb;-webkit-transform-origin:0 100%;transform-ori
+  gin:0 100%;-webkit-transform:scaleY(0.5);transform:scale
+  Y(0.5)}.original_tool_area .radius_avatar{width:27px;hei
+  ght:27px;padding:0;margin-right:.5em}.original_tool_area
+   .radius_avatar img{height:100% !important}.original_too
+   l_area .flex_cell_bd{width:auto;overflow:hidden;text-ov
+   erflow:ellipsis;white-space:nowrap;word-wrap:normal}.or
+   iginal_tool_area .flex_cell_ft{font-size:14px;color:#8c
+   8c8c;padding-left:1em;white-space:nowrap}.original_tool
+   _area .icon_access:after{content:" ";display:inline-blo
+   ck;height:8px;width:8px;border-width:1px 1px 0 0;border
+   -color:#cbcad0;border-style:solid;transform:matrix(0.71
+   ,0.71,-0.71,0.71,0,0);-ms-transform:matrix(0.71,0.71,-0
+   .71,0.71,0,0);-webkit-transform:matrix(0.71,0.71,-0.71,
+   0.71,0,0);position:relative;top:-2px;top:-1px}.weui_loa
+   ding{width:20px;height:20px;display:inline-block;vertic
+   al-align:middle;-webkit-animation:weuiLoading 1s steps(
+   12,end) infinite;animation:weuiLoading 1s steps(12,end) i
+   nfinite;background:transparent url("") no-repeat;-webkit-
+   background-size:100%;background-size:100%}@-webkit-keyfra
+   mes weuiLoading{0%{-webkit-transform:rotate3d(0,0,1,0)}10
+   0%{-webkit-transform:rotate3d(0,0,1,360deg)}}@keyframes w
+   euiLoading{0%{-webkit-transform:rotate3d(0,0,1,0)}100%{-w
+   ebkit-transform:rotate3d(0,0,1,360deg)}}.gif_img_wrp{disp
+   lay:inline-block;font-size:0;position:relative;font-weigh
+   t:400;font-style:normal;text-indent:0;text-shadow:none 1p
+   x 1px rgba(0,0,0,0.5)}.gif_img_wrp img{vertical-align:top
+   }.gif_img_tips{background:rgba(0,0,0,0.6) !important;filt
+   er:progid:DXImageTransform.Microsoft.gradient(
+   =0,startColorstr="#99000000",endcolorstr = "#99000000");b
+   order-top-left-radius:1.2em 50%;-moz-border-radius-toplef
+   t:1.2em 50%;-webkit-border-top-left-radius:1.2em 50%;bord
+   er-top-right-radius:1.2em 50%;-moz-border-radius-topright
+   :1.2em 50%;-webkit-border-top-right-radius:1.2em 50%;bord
+   er-bottom-left-radius:1.2em 50%;-moz-border-radius-bottom
+   left:1.2em 50%;-webkit-border-bottom-left-radius:1.2em 50
+   %;border-bottom-right-radius:1.2em 50%;-moz-border-radius
+   -bottomright:1.2em 50%;-webkit-border-bottom-right-radius
+   :1.2em 50%;line-height:2.3;font-size:11px;color:#fff;text
+   -align:center;position:absolute;bottom:10px;left:10px;min
+   -width:65px}.gif_img_tips.loading{min-width:75px}.gif_img
+   _tips i{vertical-align:middle;margin:-.2em .73em 0 -2px}.
+   gif_img_play_arrow{display:inline-block;width:0;height:0;
+   border-width:8px;border-style:dashed;border-color:transpa
+   rent;border-right-width:0;border-left-color:#fff;border-l
+   eft-style:solid;border-width:5px 0 5px 8px}.gif_img_loadi
+   ng{width:14px;height:14px}i.gif_img_loading{margin-left:-
+   4px}.gif_bg_tips_wrp{position:relative;height:0;line-heig
+   ht:0;margin:0;padding:0}.gif_bg_tips_wrp .gif_img_tips_gr
+   oup{position:absolute;top:0;left:0;z-index:9999}.gif_bg_t
+   ips_wrp .gif_img_tips_group .gif_img_tips{top:0;left:0;bo
+   ttom:auto}.rich_media_global_msg{position:fixed;top:0;lef
+   t:0;right:0;padding:1em 35px 1em 15px;z-index:2;background-color:#c6e0f8;color:#8c8c8c;fo
+   nt-size:13px}.rich_media_global_msg .icon_closed{position:absolute;right:15px;top:50%;margin-top:-5px;line-height:300px;overflow:hidden;-webkit-tap-highlight-color:rgba(0,0,0,0);background:transparent url("") no-repeat 0 0;width:11px;height:11px;vertical-align:middle;display:inline-block;-webkit-background-size:100% auto;background-size:100% auto}.rich_media_global_msg .icon_closed:active{background-position:0 -17px}.preview_appmsg .rich_media_title{margin-top:1.9em}@media screen and (min-width:1024px){.rich_media_global_msg{position:relative;margin:0 20px}.preview_appmsg .rich_media_title{margin-top:0}}.pages_reset{color:#3e3e3e;line-height:1.6;font-size:16px;font-weight:400;font-style:normal;text-indent:0;letter-spacing:normal;text-align:left;text-decoration:none}.weapp_element,.weapp_display_element,.mp-miniprogram{display:block;margin:1em 0}.share_audio_context{margin:16px 0}.weapp_text_link{font-size:17px}.weapp_text_link:before{content:"";display:inline-block;line-height:1;background-size:12px 12px;background-repeat:no-repeat;background-image:url("");vertical-align:middle;font-size:11px;color:#888;border-radius:10px;background-color:#f4f4f4;margin-right:6px;margin-top:-4px;background-position:center;height:20px;width:20px}.weui-mask{position:fixed;z-index:1000;top:0;right:0;left:0;bottom:0;background:rgba(0,0,0,0.6)}.weui-dialog{position:fixed;z-index:5000;width:80%;max-width:300px;top:50%;left:50%;-webkit-transform:translate(-50%,-50%);transform:translate(-50%,-50%);background-color:#fff;text-align:center;border-radius:3px;overflow:hidden}.weui-dialog__hd{padding:1.3em 1.6em .5em}.weui-dialog__title{font-weight:400;font-size:18px}.weui-dialog__bd{padding:0 1.6em .8em;min-height:40px;font-size:15px;line-height:1.3;word-wrap:break-word;word-break:break-all;color:#999}.weui-dialog__bd:first-child{padding:2.7em 20px 1.7em;color:#353535}.weui-dialog__ft{position:relative;line-height:48px;font-size:18px;display:-webkit-box;display:-webkit-flex;display:flex}.weui-dialog__ft:after{content:" ";position:absolute;left:0;top:0;right:0;height:1px;border-top:1px solid #d5d5d6;color:#d5d5d6;-webkit-transform-origin:0 0;transform-origin:0 0;-webkit-transform:scaleY(0.5);transform:scaleY(0.5)}.weui-dialog__btn{display:block;-webkit-box-flex:1;-webkit-flex:1;flex:1;color:#3cc51f;text-decoration:none;-webkit-tap-highlight-color:rgba(0,0,0,0);position:relative}.weui-dialog__btn:active{background-color:#eee}.weui-dialog__btn:after{content:" ";position:absolute;left:0;top:0;width:1px;bottom:0;border-left:1px solid #d5d5d6;color:#d5d5d6;-webkit-transform-origin:0 0;transform-origin:0 0;-webkit-transform:scaleX(0.5);transform:scaleX(0.5)}.weui-dialog__btn:first-child:after{display:none}.weui-dialog__btn_default{color:#353535}.weui-dialog__btn_primary{color:#0bb20c}.rich_media_content{font-size:18px}
 '''
-from libMe.util import EncodeUtil
-print EncodeUtil.toUnicode(value)
+# color = '#f3f3f3'
+# pAll = re.compile('background-color\s*:\s*' + color + ';?')
+# matchUrls = pAll.findall(value)
+# if len(matchUrls):
+#     for matchUrl in matchUrls:
+#         value = value.replace(matchUrl, 'reddddddddddddddddddddddddddddddddddddddddd')
+# print value
+
+a = '      '.strip(' ')
+if a:
+    print 1
+else:
+    print 2

@@ -20,6 +20,23 @@ def compressCss(listCss):
     return compress(listCss)
 
 
+def clearBackgroundColor(value, colorList):
+    for color in colorList:
+        # background:#f3f3f3;
+        pAll = re.compile('background\s*:\s*' + color + ';?')
+        matches = pAll.findall(value)
+        if len(matches):
+            for match in matches:
+                value = value.replace(match, '')
+        # background-color:#f3f3f3;
+        pAll = re.compile('background-color\s*:\s*' + color + ';?')
+        matches = pAll.findall(value)
+        if len(matches):
+            for match in matches:
+                value = value.replace(match, '')
+    return value
+
+
 def clearUrl(value):
     # 替换样式里面的链接
     # url\(\s *\"?http.*?\"?\s*\)

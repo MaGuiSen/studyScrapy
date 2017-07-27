@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
 import urllib
+import webbrowser
+
+
+def openWebbrowser(url):
+    webbrowser.open(url)
 
 
 def checkNetWork():

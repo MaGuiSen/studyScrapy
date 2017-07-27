@@ -14,6 +14,7 @@ from libMe.util import TimerUtil
 from ..db.CheckDao import CheckDao
 from ..db.WxSourceDao import WxSourceDao
 from ..items import ContentItem
+from libMe.util import CssUtil
 
 
 class WXDetailSpider(scrapy.Spider):
@@ -32,12 +33,12 @@ class WXDetailSpider(scrapy.Spider):
         spider.saveStatus('stop')
 
     def start_requests(self):
-        title = u'专访微软洪小文：AI绝非无所不能 要想进步需关注基础研究'
+        title = u'他们如何浪在你和她之间？618热门电商APP深度洞察'
         # 如果存在则不抓取
-        wx_account = 'DataScientistUnion'
+        wx_account = ' QuestMobile'
         if self.checkDao.checkExist(title, wx_account, 1):
             self.logDao.info(u'已经存在' + wx_account + ':' + title)
-        detailUrl = 'http://mp.weixin.qq.com/s?timestamp=1501104564&src=3&ver=1&signature=*2eVTfhPO6vFnvRZ*flkLIln1NY4W8Z8GggTkr42MdgKtGnvioP7FUCkNHgAxf3kQjbGG8soVgymT*ECoWYIWd9jMRugBb12cM9Y9ACUpiSrxwUSVqEiycT0wKiq0Ixc-NV*UUoU5bUmFLoSCfJz3u81flXb7ofqRgXwH6v03jA='
+        detailUrl = 'http://mp.weixin.qq.com/s?timestamp=1501137401&src=3&ver=1&signature=hZ0GZZGpjdmSWLwkG15dG7egEdGf3oecAXdtVX6upm6mceCOTbBxLsH*sLA1A6PAqwJ9Vr890Xn5bD9bXbOPPUMSBaRAxdR8lHhIZfmo0yjLIgRJs9JIRlB-3QUfevAtf1TFA5WVK-H2ioir12TMR0Wfg4o43MwVK8PqEVAthhY='
         self.logDao.info(u'抓取' + wx_account + ':' + title + ':' + detailUrl)
         yield scrapy.Request(url=detailUrl,
                              meta={'request_type': 'weixin_detail', 'wx_account': wx_account,
@@ -69,75 +70,87 @@ class WXDetailSpider(scrapy.Spider):
                 post_date = time.strftime("%Y-%m-%d %H:%M:%S", time.strptime(post_date, "%Y-%m-%d"))
             except Exception:
                 pass
+            styles = selector.xpath('//style/text()').extract()
+            styles = CssUtil.compressCss(styles).replace('\'', '"').replace('\\', '\\\\')
+            styles = CssUtil.clearUrl(styles)
 
             post_user = selector.xpath('//*[@id="post-user"]/text()').extract_first('')
             content_html = selector.xpath('//*[@id="js_content"]')
-            if len(content_html):
-                styles = ''  # 微信不需要样式
-                # 去除内部不需要的标签
-                content_items = content_html.xpath('*')
-                if not len(content_items):
-                    self.logDao.info(u'不存在内容：' + source_url)
-                    return
-                # 得到纯文本
-                content_txt = []
-                for item in content_items:
-                    # 文本
-                    allTxt = item.xpath('.//text()').extract()
-                    allTxt = ''.join(allTxt).replace('\t', '')
-                    # 加入
-                    content_txt.append(allTxt)
-                content_txt = '\n'.join(content_txt)
+            if not len(content_html):
+                self.logDao.info(u'不存在内容：' + source_url)
+                return
+            # 去除内部不需要的标签
+            content_items = content_html.xpath('*')
+            if not len(content_items):
+                self.logDao.info(u'不存在内容：' + source_url)
+                return
+            # 得到纯文本
+            content_txt = []
+            for item in content_items:
+                # 文本
+                allTxt = item.xpath('.//text()').extract()
+                allTxt = ''.join(allTxt).replace('\t', '')
+                # 加入
+                content_txt.append(allTxt)
+            content_txt = '\n'.join(content_txt)
 
-                # 组装新的内容标签
-                outHtml = """<div class="rich_media_content " id="js_content">${++content++}</div>"""
-                content_items = content_items.extract()
-                content_items = ''.join(content_items)
+            # 组装新的内容标签
+            outHtml = """<div class="rich_media_content " id="js_content">${++content++}</div>"""
+            content_items = content_items.extract()
+            content_items = ''.join(content_items)
 
-                content_html = outHtml.replace('${++content++}', content_items)
+            content_html = outHtml.replace('${++content++}', content_items)
 
-                selector = Selector(text=content_html)
+            selector = Selector(text=content_html)
 
-                # 解析文档中的所有图片url，然后替换成标识
-                image_urls = []
-                imgs = selector.xpath('descendant::img')
+            # 解析文档中的所有图片url，然后替换成标识
+            image_urls = []
+            imgs = selector.xpath('descendant::img')
 
-                for img in imgs:
-                    # 图片可能放在src 或者data-src
-                    image_url = img.xpath('@src | @data-src').extract_first('')
-                    if image_url and image_url.startswith('http'):
-                        self.logDao.info(u'得到图片：' + image_url)
-                        image_urls.append({
-                            'url': image_url,
-                        })
-                self.logDao.info(wx_account + u'得到文章：' + title + ":" + post_date + ':' + post_user)
-                self.logDao.info(u'得到文章：' + source_url)
+            for img in imgs:
+                # 图片可能放在src 或者data-src
+                image_url = img.xpath('@src | @data-src').extract_first('')
+                if image_url and image_url.startswith('http'):
+                    self.logDao.info(u'得到图片：' + image_url)
+                    image_urls.append({
+                        'url': image_url,
+                    })
+            self.logDao.info(wx_account + u'得到文章：' + title + ":" + post_date + ':' + post_user)
+            self.logDao.info(u'得到文章：' + source_url)
 
-                # 得到hashCode1
-                hash_code = self.checkDao.getHashCode(title, wx_account, 1)
+            # 得到hashCode1
+            hash_code = self.checkDao.getHashCode(title, wx_account, 1)
 
-                self.saveFile(hash_code, body)
+            self.saveFile(hash_code, body)
 
-                contentItem = ContentItem()
-                contentItem['content_txt'] = content_txt
-                contentItem['image_urls'] = image_urls
-                contentItem['title'] = title
-                contentItem['source_url'] = source_url
-                contentItem['post_date'] = post_date
-                contentItem['sub_channel'] = ''
-                contentItem['post_user'] = post_user
-                contentItem['tags'] = ''
-                contentItem['styles'] = styles
-                contentItem['content_html'] = content_html
-                contentItem['hash_code'] = hash_code
-                contentItem['info_type'] = 1
-                contentItem['src_source_id'] = 1
-                contentItem['src_account_id'] = wx_account_id
-                contentItem['src_channel'] = '微信公众号'
-                contentItem['src_ref'] = ''
-                contentItem['wx_account'] = wx_account
+            # 去除 image 的 alt title
+            selector = Selector(text=content_html)
+            imgAltTitles = selector.xpath('//img/@alt|//img/@title').extract()
+            # 处理提示块img的 alt title, 关注//img/@alt|//img/@title
+            for imgAltTitle in imgAltTitles:
+                if imgAltTitle.strip(' '):
+                    content_html = content_html.replace(imgAltTitle, '')
 
-                # return contentItem
+            contentItem = ContentItem()
+            contentItem['content_txt'] = content_txt
+            contentItem['image_urls'] = image_urls
+            contentItem['title'] = title
+            contentItem['source_url'] = source_url
+            contentItem['post_date'] = post_date
+            contentItem['sub_channel'] = ''
+            contentItem['post_user'] = post_user
+            contentItem['tags'] = ''
+            contentItem['styles'] = styles
+            contentItem['content_html'] = content_html
+            contentItem['hash_code'] = hash_code
+            contentItem['info_type'] = 1
+            contentItem['src_source_id'] = 1
+            contentItem['src_account_id'] = wx_account_id
+            contentItem['src_channel'] = '微信公众号'
+            contentItem['src_ref'] = ''
+            contentItem['wx_account'] = wx_account
+
+            return contentItem
 
     def saveFile(self, title, content):
         filename = 'html/%s.html' % title
