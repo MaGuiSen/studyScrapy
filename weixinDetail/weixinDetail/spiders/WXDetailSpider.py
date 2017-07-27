@@ -26,7 +26,7 @@ class WXDetailSpider(scrapy.Spider):
         super(WXDetailSpider, self).__init__(name=None, **kwargs)
         self.count = 0
         self.wxSourceDao = WxSourceDao()
-        self.logDao = LogDao(self.logger,'weixin_list_detail')
+        self.logDao = LogDao(self.logger, 'weixin_list_detail')
         self.checkDao = CheckDao()
 
     def close(spider, reason):
@@ -36,38 +36,38 @@ class WXDetailSpider(scrapy.Spider):
         # unKnow = ["didalive", "HIS_Technology", "CINNO_CreateMore", "ad_helper", "zhongduchongdu"]; 是搜索不到的
         # TODO..加上while可能有问题，有些可能抓不到
         # while True:
-            # 如果正在爬，就不请求
-            status = self.getStatus()
-            if status == 'running':
-                return
-            self.saveStatus('running')
-            # 检测网络
-            while not NetworkUtil.checkNetWork():
-                # 20s检测一次
-                TimerUtil.sleep(20)
-                self.logDao.warn(u'检测网络不可行')
-                # continue
+        # 如果正在爬，就不请求
+        status = self.getStatus()
+        if status == 'running':
+            return
+        self.saveStatus('running')
+        # 检测网络
+        while not NetworkUtil.checkNetWork():
+            # 20s检测一次
+            TimerUtil.sleep(20)
+            self.logDao.warn(u'检测网络不可行')
+            # continue
 
-            # 检测服务器
-            while not NetworkUtil.checkService():
-                # 20s检测一次
-                TimerUtil.sleep(20)
-                self.logDao.warn(u'检测服务器不可行')
-                # continue
+        # 检测服务器
+        while not NetworkUtil.checkService():
+            # 20s检测一次
+            TimerUtil.sleep(20)
+            self.logDao.warn(u'检测服务器不可行')
+            # continue
 
-            # 获取源  可用有值
-            sources = self.wxSourceDao.queryWxUrl(isRandom=True)
+        # 获取源  可用有值
+        sources = self.wxSourceDao.queryWxUrl(isRandom=True)
 
-            for source in sources:
-                (id, wx_name, wx_account, wx_url, wx_avatar, update_status, is_enable, update_time) = source
-                # 进行页面访问
-                newUrl = wx_url
-                self.logDao.warn(u'进行抓取:' + newUrl)
-                yield scrapy.Request(url=newUrl,
-                                     meta={'request_type': 'weixin_page_list',
-                                           'source_url':newUrl,
-                                           'wx_account': wx_account, 'source': source, 'wx_account_id':id},
-                                     callback=self.parseArticleList, dont_filter=True)
+        for source in sources:
+            (id, wx_name, wx_account, wx_url, wx_avatar, update_status, is_enable, update_time) = source
+            # 进行页面访问
+            newUrl = wx_url
+            self.logDao.warn(u'进行抓取:' + newUrl)
+            yield scrapy.Request(url=newUrl,
+                                 meta={'request_type': 'weixin_page_list',
+                                       'source_url': newUrl,
+                                       'wx_account': wx_account, 'source': source, 'wx_account_id': id},
+                                 callback=self.parseArticleList, dont_filter=True)
 
     def parseArticleList(self, response):
         body = EncodeUtil.toUnicode(response.body)
@@ -112,7 +112,7 @@ class WXDetailSpider(scrapy.Spider):
                             self.logDao.info(u'抓取' + wx_account + ':' + title + ':' + detailUrl)
                             yield scrapy.Request(url=detailUrl,
                                                  meta={'request_type': 'weixin_detail', 'wx_account': wx_account,
-                                                       "source": source, "title": title, 'wx_account_id':wx_account_id,
+                                                       "source": source, "title": title, 'wx_account_id': wx_account_id,
                                                        "source_url": detailUrl},
                                                  callback=self.parseArticle)
 
@@ -173,8 +173,6 @@ class WXDetailSpider(scrapy.Spider):
                 # 文本
                 allTxt = item.xpath('.//text()').extract()
                 allTxt = ''.join(allTxt).replace('\t', '')
-                if u'订阅微信' in allTxt:
-                    continue
                 # 加入
                 content_txt.append(allTxt)
             content_txt = '\n'.join(content_txt)
@@ -259,7 +257,6 @@ class WXDetailSpider(scrapy.Spider):
         finally:
             if f:
                 f.close()
-
 
 
 """

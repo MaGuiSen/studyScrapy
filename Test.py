@@ -36,6 +36,8 @@
 # # print webbrowser.get()
 import re
 
+from scrapy import Selector
+
 value = '''
 html{-ms-text-size-adjust:100%;-webkit-te
 xt-size-adjust:100%;line-height:1.6}body{-webkit-touch-
@@ -189,8 +191,18 @@ rich_media_area_primary{position:relative;padding:20px
 #         value = value.replace(matchUrl, 'reddddddddddddddddddddddddddddddddddddddddd')
 # print value
 
-a = '      '.strip(' ')
-if a:
-    print 1
-else:
-    print 2
+# a = '      '.strip(' ')
+# if a:
+#     print 1
+# else:
+#     print 2
+
+v = '<div><p><span>订阅微信</span></p><p>llll</p></div>'
+content_items = Selector(text=v).xpath('//div').xpath('*')
+content_items_new = []
+for item in content_items:
+    itemStr = item.extract()
+    if u'订阅微信' in itemStr:
+        continue
+    content_items_new.append(item)
+content_items = content_items_new
