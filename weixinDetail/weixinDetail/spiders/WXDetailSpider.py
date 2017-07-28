@@ -79,8 +79,8 @@ class WXDetailSpider(scrapy.Spider):
             self.logDao.info(u'访问过多被禁止,重新拨号')
             # 获取Ip # 同时空线程30s
             NetworkUtil.getNewIp()
+            TimerUtil.sleep(50)
             NetworkUtil.openWebbrowser(source_url)
-            TimerUtil.sleep(10)
         else:
             source = response.meta['source']
             wx_account = response.meta['wx_account']
@@ -126,8 +126,8 @@ class WXDetailSpider(scrapy.Spider):
             self.logDao.info(u'访问过多被禁止,重新拨号')
             # 获取Ip # 同时空线程30s
             NetworkUtil.getNewIp()
+            TimerUtil.sleep(50)
             NetworkUtil.openWebbrowser(source_url)
-            TimerUtil.sleep(10)
         else:
             wx_account = response.meta['wx_account']
             title = response.meta['title']
@@ -159,13 +159,13 @@ class WXDetailSpider(scrapy.Spider):
                 self.logDao.info(u'不存在内容：' + source_url)
                 return
 
-            content_items_new = []
-            for item in content_items:
-                itemStr = item.extract()
-                if u'订阅微信' in itemStr:
-                    continue
-                content_items_new.append(item)
-            content_items = content_items_new
+            # content_items_new = []
+            # for item in content_items:
+            #     itemStr = item.extract()
+            #     if u'订阅微信' in itemStr:
+            #         continue
+            #     content_items_new.append(item)
+            # content_items = content_items_new
 
             # 得到纯文本
             content_txt = []

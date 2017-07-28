@@ -4,7 +4,8 @@ import webbrowser
 
 
 def openWebbrowser(url):
-    webbrowser.open(url)
+    pass
+    # webbrowser.open(url)
 
 
 def checkNetWork():

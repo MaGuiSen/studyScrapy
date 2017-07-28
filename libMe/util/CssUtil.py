@@ -8,10 +8,13 @@ from util import EncodeUtil
 
 
 def downLoad(url):
-    result = requests.get(url, timeout=5)
-    if result.status_code == 200:
-        return EncodeUtil.toUnicode(result.content)
-    else:
+    try:
+        result = requests.get(url, timeout=20)
+        if result.status_code == 200:
+            return EncodeUtil.toUnicode(result.content)
+        else:
+            return ''
+    except:
         return ''
 
 
