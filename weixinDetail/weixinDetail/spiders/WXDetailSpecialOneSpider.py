@@ -67,6 +67,7 @@ class WXDetailSpecialOneSpider(scrapy.Spider):
         body = EncodeUtil.toUnicode(response.body)
         selector = Selector(text=body)
         source_url = response.meta['source_url']
+        print source_url
         title = selector.xpath('//title/text()').extract_first('').strip(u' ')
         isN = u"请输入验证码" == title
         if isN or response.status == 302:
@@ -101,6 +102,8 @@ class WXDetailSpecialOneSpider(scrapy.Spider):
                                 self.logDao.info(u'已经存在' + wx_account + ':' + title)
                                 continue
                             detailUrl = app_msg_ext_info['content_url'] or ''
+                            if not detailUrl:
+                                continue
                             detailUrl = "http://mp.weixin.qq.com" + detailUrl
                             detailUrl = detailUrl.replace("amp;", "")
                             self.logDao.info(u'抓取' + wx_account + ':' + title + ':' + detailUrl)

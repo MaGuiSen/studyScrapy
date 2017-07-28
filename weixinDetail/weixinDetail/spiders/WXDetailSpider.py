@@ -110,6 +110,8 @@ class WXDetailSpider(scrapy.Spider):
                             detailUrl = "http://mp.weixin.qq.com" + detailUrl
                             detailUrl = detailUrl.replace("amp;", "")
                             self.logDao.info(u'抓取' + wx_account + ':' + title + ':' + detailUrl)
+                            if not detailUrl:
+                                continue
                             yield scrapy.Request(url=detailUrl,
                                                  meta={'request_type': 'weixin_detail', 'wx_account': wx_account,
                                                        "source": source, "title": title, 'wx_account_id': wx_account_id,

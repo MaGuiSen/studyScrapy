@@ -46,7 +46,7 @@ class WXSourceSpecialOneSpider(scrapy.Spider):
 
         # 进行爬虫
         # 获取源  可用的，且（是更新失败的，或者最新的同时更新时间跟当前相比大于40分钟）
-        sources = self.wxSourceDao.queryEnable_special(isRandom=True, wx_accounts=[])
+        sources = self.wxSourceDao.queryEnable_special(isRandom=True, wx_accounts=['CINNO_CreateMore'])
 
         for source in sources:
             # 更新当前条状态为 更新中，如果更新失败或者被绊则更新为更新失败，更新成功之后设置为成功
