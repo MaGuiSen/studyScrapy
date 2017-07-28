@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from scrapy import Selector
 
 from libMe.db.Connector import Connector
 from libMe.util import EncryptUtil

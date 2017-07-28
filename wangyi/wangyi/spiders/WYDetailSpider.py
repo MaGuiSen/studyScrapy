@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import random
-import re
 
 import demjson
 import scrapy
@@ -35,20 +34,17 @@ class WYDetailSpider(scrapy.Spider):
         }
 
     def start_requests(self):
-        # while True:
             # 检测网络
             if not NetworkUtil.checkNetWork():
                 # 20s检测一次
                 TimerUtil.sleep(20)
                 self.logDao.warn(u'检测网络不可行')
-                # continue
 
             # 检测服务器
             if not NetworkUtil.checkService():
                 # 20s检测一次
                 TimerUtil.sleep(20)
                 self.logDao.warn(u'检测服务器不可行')
-                # continue
 
             # 进行页面访问
             newUrl = 'http://tech.163.com/special/00094IHV/news_json.js?' + str(random.uniform(0, 1))

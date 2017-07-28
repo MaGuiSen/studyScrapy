@@ -46,6 +46,36 @@ class WxSourceDao(object):
             random.shuffle(results)
         return results
 
+    def queryWxUrl_special(self, isRandom=False, wx_accounts=[]):
+        """
+        获取wxUrl有值，且是有效的
+        :return:
+        """
+        cursor = self.connector.cursor()
+        if not cursor:
+            return []
+
+        if self.orderType == "desc":
+            self.orderType = "asc"
+        else:
+            self.orderType = "desc"
+
+        accountStr = ''
+        if len(wx_accounts):
+            accountStr = ','.join(wx_accounts)
+            accountStr = "and wx_account in ('%s')"%accountStr
+
+        sql_query = "select id,wx_name,wx_account,wx_url,wx_avatar,update_status,is_enable,update_time from weixin_source " \
+                    "where is_enable='1' and wx_url !='' "+accountStr+" order by id " + self.orderType
+        cursor.execute(sql_query)
+        results = cursor.fetchall()
+        cursor.close()
+        results = results or []
+        if isRandom and results:
+            # 随机排序 防止出现都是请求同一个
+            random.shuffle(results)
+        return results
+
     def queryWxUrl(self, isRandom=False):
         """
         获取wxUrl有值，且是有效的

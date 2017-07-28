@@ -10,6 +10,33 @@ class WxSourceDao(object):
         self.connector = Connector()
         self.orderType = 'desc'  # 用于判断是升序还是降序
 
+    def queryEnable_special(self, isRandom=False, wx_accounts=[]):
+        cursor = self.connector.cursor()
+        if not cursor:
+            return []
+        if self.orderType == "desc":
+            self.orderType = "asc"
+        else:
+            self.orderType = "desc"
+
+        accountStr = ''
+        if len(wx_accounts):
+            accountStr = ','.join(wx_accounts)
+            accountStr = "and wx_account in ('%s')" % accountStr
+
+        # 可用的 且（ 更新状态为last且时间大于20分钟/ 更新状态为updating且时间大于20分钟/更新状态为updating/更新状态为none）
+        sql_query = "select wx_name,wx_account,wx_url,wx_avatar,update_status,is_enable,update_time from weixin_source " \
+                    "where is_enable='1' "+accountStr+" order by id "+self.orderType
+        cursor.execute(sql_query)
+        results = cursor.fetchall()
+        cursor.close()
+        results = results or []
+        # print "sources长度", len(results)
+        if isRandom and results:
+            # 随机排序 防止出现都是请求同一个
+            random.shuffle(results)
+        return results
+
     def queryEnable(self, isRandom=False):
         cursor = self.connector.cursor()
         if not cursor:
@@ -103,5 +130,3 @@ class WxSourceDao(object):
         cursor.execute(sql_query, (wx_name, wx_url, update_status, update_time, wx_account))
         cursor.close()
         self.connector.commit()
-
-

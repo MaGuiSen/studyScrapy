@@ -9,7 +9,6 @@
 import time
 
 import requests
-from mysql.connector import MySQLConnection
 from scrapy import Request
 from scrapy.pipelines.images import ImagesPipeline
 

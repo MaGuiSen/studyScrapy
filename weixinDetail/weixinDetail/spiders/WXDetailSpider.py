@@ -33,7 +33,7 @@ class WXDetailSpider(scrapy.Spider):
         spider.saveStatus('stop')
 
     def start_requests(self):
-        # unKnow = ["didalive", "HIS_Technology", "CINNO_CreateMore", "ad_helper", "zhongduchongdu"]; 是搜索不到的
+        # unKnow = ["didalive", "HIS_Technology", "ad_helper", "zhongduchongdu"]; 是搜索不到的
         # TODO..加上while可能有问题，有些可能抓不到
         # while True:
         # 如果正在爬，就不请求

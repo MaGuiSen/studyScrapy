@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import re
 import time
 
 import scrapy
@@ -34,20 +33,17 @@ class TXDetailSpider(scrapy.Spider):
         }
 
     def start_requests(self):
-        # while True:
             # 检测网络
             if not NetworkUtil.checkNetWork():
                 # 20s检测一次
                 TimerUtil.sleep(20)
                 self.logDao.warn(u'检测网络不可行')
-                # continue
 
             # 检测服务器
             if not NetworkUtil.checkService():
                 # 20s检测一次
                 TimerUtil.sleep(20)
                 self.logDao.warn(u'检测服务器不可行')
-                # continue
 
             # 进行页面访问
             newUrl = 'http://tech.qq.com/l/scroll.htm'

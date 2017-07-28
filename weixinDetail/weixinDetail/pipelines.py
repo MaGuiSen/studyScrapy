@@ -12,10 +12,9 @@ from scrapy import Request
 from scrapy.pipelines.images import ImagesPipeline
 
 from libMe.db.Connector import Connector
-from libMe.util.FileUtil import UploadUtil
 from libMe.util import TimerUtil
+from libMe.util.FileUtil import UploadUtil
 from util import EncryptUtil
-from util import EncodeUtil
 from util import FileUtil
 from .items import ContentItem
 

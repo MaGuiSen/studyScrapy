@@ -1,13 +1,8 @@
 # -*- coding: utf-8 -*-
 
-import os
-
-from mysql.connector import MySQLConnection
-from scrapy import Selector
-
-import config.configutils as cu
-from libMe.util import EncryptUtil
 from libMe.db.Connector import Connector
+from libMe.util import EncryptUtil
+
 
 class CheckDao(object):
     def __init__(self):

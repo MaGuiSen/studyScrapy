@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
-from scrapy import Selector
 
 from libMe.db.Connector import Connector
 from libMe.util import EncryptUtil
-from libMe.util import CssUtil
 
 
 class CheckDao(object):
