@@ -78,8 +78,10 @@ def heartBeat():
         (type, update_time) = result
         timeArray = time.strptime(str(update_time), "%Y-%m-%d %H:%M:%S")
         update_time_long = int(time.mktime(timeArray))
+        print update_time
         if outOfData(update_time_long):
             print 'outOfData'
+            print update_time
             needSendTypes.append(type)
 
     if len(needSendTypes) and checkNeedSend():
