@@ -233,6 +233,6 @@ class DataMonitorDao(object):
             return 0
 
 # print DataMonitorDao().getTotal(cursor_out=None, type='weixin_account_total', account='qqtech')
-# print DataMonitorDao().heatBeat(type='sina_heartbeat')
+# print DataMonitorDao().getAllHeartBeatTime(cursor_out=None)
 
 

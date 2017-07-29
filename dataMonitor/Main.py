@@ -9,8 +9,6 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 
 from libMe.db.DataMonitorDao import DataMonitorDao
 
-dataMonitor = DataMonitorDao()
-
 # 参考网站：http://www.cnblogs.com/xcblogs-python/p/5727238.html
 import smtplib  # 加载smtplib模块
 from email.mime.text import MIMEText
@@ -63,7 +61,7 @@ def checkNeedSend():
 
 def outOfData(update_time_long):
     currTime = int(time.time())
-    if currTime - update_time_long > 3 * 60:
+    if currTime - update_time_long > 10 * 60:
         return True
     else:
         return False
@@ -71,6 +69,7 @@ def outOfData(update_time_long):
 
 def heartBeat():
     # 心跳
+    dataMonitor = DataMonitorDao()
     results = dataMonitor.getAllHeartBeatTime(cursor_out=None)
     print 'check....'
     needSendTypes = []
