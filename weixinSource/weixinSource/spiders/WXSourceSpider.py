@@ -11,6 +11,7 @@ from libMe.db.LogDao import LogDao
 from libMe.util import NetworkUtil
 from libMe.util import EncodeUtil
 from libMe.util import TimerUtil
+from libMe.db.DataMonitorDao import DataMonitorDao
 
 
 class WXSourceSpider(scrapy.Spider):
@@ -23,51 +24,53 @@ class WXSourceSpider(scrapy.Spider):
         self.count = 0
         self.wxSourceDao = WxSourceDao()
         self.currIp = ''
-        self.logDao = LogDao(self.logger,'weixin_source_catch')
+        self.logDao = LogDao(self.logger, 'weixin_source_catch')
+        self.dataMonitor = DataMonitorDao()
 
     def close(spider, reason):
         spider.saveStatus('stop')
+        spider.dataMonitor.updateTotal('weixin_source_total')
 
     def start_requests(self):
         # TODO..加上while可能有问题，有些抓不到
         # while True:
-            # 如果正在爬，就不请求
-            status = self.getStatus()
-            if status == 'running':
-                return
-            self.saveStatus('running')
+        # 如果正在爬，就不请求
+        status = self.getStatus()
+        if status == 'running':
+            return
+        self.saveStatus('running')
 
-            # 检测网络
-            while not NetworkUtil.checkNetWork():
-                # 20s检测一次
-                TimerUtil.sleep(20)
-                self.logDao.warn(u'检测网络不可行')
-                # continue
+        # 检测网络
+        while not NetworkUtil.checkNetWork():
+            # 20s检测一次
+            TimerUtil.sleep(20)
+            self.logDao.warn(u'检测网络不可行')
+            # continue
 
-            # 检测服务器
-            while not NetworkUtil.checkService():
-                # 20s检测一次
-                TimerUtil.sleep(20)
-                self.logDao.warn(u'检测服务器不可行')
-                # continue
+        # 检测服务器
+        while not NetworkUtil.checkService():
+            # 20s检测一次
+            TimerUtil.sleep(20)
+            self.logDao.warn(u'检测服务器不可行')
+            # continue
 
-            # 进行爬虫
-            # 获取源  可用的，且（是更新失败的，或者最新的同时更新时间跟当前相比大于40分钟）
-            sources = self.wxSourceDao.queryEnable(isRandom=True)
+        # 进行爬虫
+        # 获取源  可用的，且（是更新失败的，或者最新的同时更新时间跟当前相比大于40分钟）
+        sources = self.wxSourceDao.queryEnable(isRandom=True)
 
-            for source in sources:
-                # 更新当前条状态为 更新中，如果更新失败或者被绊则更新为更新失败，更新成功之后设置为成功
-                (wx_name, wx_account, wx_url, wx_avatar, update_status, is_enable, update_time) = source
-                # 更新状态为更新中
-                self.wxSourceDao.updateStatus(wx_account, 'updating')
-                # 进行页面访问
-                url = 'http://weixin.sogou.com/weixin?type=1&s_from=input&ie=utf8&_sug_=n&_sug_type_=&query='
-                newUrl = url + wx_account
-                self.logDao.warn(u'进行抓取:'+newUrl)
-                yield scrapy.Request(url=newUrl,
-                                     meta={'request_type': 'weixin_source', 'url': newUrl,
-                                           'wx_account': wx_account, 'source': source},
-                                     callback=self.parseList, dont_filter=True)
+        for source in sources:
+            # 更新当前条状态为 更新中，如果更新失败或者被绊则更新为更新失败，更新成功之后设置为成功
+            (wx_name, wx_account, wx_url, wx_avatar, update_status, is_enable, update_time) = source
+            # 更新状态为更新中
+            self.wxSourceDao.updateStatus(wx_account, 'updating')
+            # 进行页面访问
+            url = 'http://weixin.sogou.com/weixin?type=1&s_from=input&ie=utf8&_sug_=n&_sug_type_=&query='
+            newUrl = url + wx_account
+            self.logDao.warn(u'进行抓取:' + newUrl)
+            yield scrapy.Request(url=newUrl,
+                                 meta={'request_type': 'weixin_source', 'url': newUrl,
+                                       'wx_account': wx_account, 'source': source},
+                                 callback=self.parseList, dont_filter=True)
 
     def parseList(self, response):
         source = response.meta['source']

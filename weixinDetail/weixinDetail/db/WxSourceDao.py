@@ -135,3 +135,4 @@ class WxSourceDao(object):
         self.connector.commit()
 
 
+

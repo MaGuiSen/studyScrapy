@@ -15,6 +15,7 @@ from libMe.util import CssUtil
 from ..db.CheckDao import CheckDao
 from ..db.WxSourceDao import WxSourceDao
 from ..items import ContentItem
+from libMe.db.DataMonitorDao import DataMonitorDao
 
 
 class WXDetailSpider(scrapy.Spider):
@@ -28,9 +29,16 @@ class WXDetailSpider(scrapy.Spider):
         self.wxSourceDao = WxSourceDao()
         self.logDao = LogDao(self.logger, 'weixin_list_detail')
         self.checkDao = CheckDao()
+        self.dataMonitor = DataMonitorDao()
+        self.wxSources = []
 
     def close(spider, reason):
         spider.saveStatus('stop')
+        spider.dataMonitor.updateTotal('weixin_total')
+        for source in spider.wxSources:
+            (id, wx_name, wx_account, wx_url, wx_avatar, update_status, is_enable, update_time) = source
+            spider.dataMonitor.updateTotal('weixin_account_total', account=wx_account)
+
 
     def start_requests(self):
         # unKnow = ["didalive", "HIS_Technology", "ad_helper", "zhongduchongdu"]; 是搜索不到的
@@ -57,7 +65,7 @@ class WXDetailSpider(scrapy.Spider):
 
         # 获取源  可用有值
         sources = self.wxSourceDao.queryWxUrl(isRandom=True)
-
+        self.wxSources = sources
         for source in sources:
             (id, wx_name, wx_account, wx_url, wx_avatar, update_status, is_enable, update_time) = source
             # 进行页面访问

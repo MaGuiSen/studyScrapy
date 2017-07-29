@@ -2,8 +2,17 @@
 
 import datetime
 import subprocess
-
 from apscheduler.schedulers.blocking import BlockingScheduler
+from libMe.db.DataMonitorDao import DataMonitorDao
+
+
+dataMonitor = DataMonitorDao()
+
+
+def heartBeat():
+    # 心跳
+    print u'跳一下'
+    dataMonitor.heartBeat('weixin_source_heartbeat')
 
 
 def start_spider(spider_name):
@@ -16,13 +25,15 @@ def start():
     start_spider('wx_source')
 
 
-timeSpace = 10*60*6  # 一个小时走一次
+timeSpace = 10 * 60 * 6  # 一个小时走一次
+heartTime = 1 * 60  # 心跳跳动时间间隔
 scheduler = BlockingScheduler(daemonic=False)
 # 先马上开始执行
 scheduler.add_job(start, 'date')
 # 后再抓取之后的某个时间段开始间隔执行
 scheduler.add_job(start, 'interval', seconds=timeSpace,
                   start_date=datetime.datetime.now() + datetime.timedelta(seconds=timeSpace))
+scheduler.add_job(heartBeat, 'interval', seconds=heartTime, start_date=datetime.datetime.now())
 scheduler.start()
 
 

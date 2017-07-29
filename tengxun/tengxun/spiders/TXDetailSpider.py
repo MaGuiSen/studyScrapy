@@ -12,6 +12,7 @@ from libMe.util import EncodeUtil
 from libMe.util import TimerUtil
 from ..db.CheckDao import CheckDao
 from ..items import ContentItem
+from libMe.db.DataMonitorDao import DataMonitorDao
 
 
 # 60s/120s/300s 刷新一次
@@ -31,6 +32,10 @@ class TXDetailSpider(scrapy.Spider):
         self.css = {
             'hash': 'style'
         }
+        self.dataMonitor = DataMonitorDao()
+
+    def close(spider, reason):
+        spider.dataMonitor.updateTotal('tengxun_total')
 
     def start_requests(self):
             # 检测网络

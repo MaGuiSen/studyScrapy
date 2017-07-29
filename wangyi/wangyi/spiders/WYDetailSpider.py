@@ -13,6 +13,7 @@ from libMe.util import TimerUtil
 from libMe.util import EncodeUtil
 from ..db.CheckDao import CheckDao
 from ..items import ContentItem
+from libMe.db.DataMonitorDao import DataMonitorDao
 
 
 # 60s/120s/300s 刷新一次
@@ -32,6 +33,10 @@ class WYDetailSpider(scrapy.Spider):
         self.css = {
             'hash': 'style'
         }
+        self.dataMonitor = DataMonitorDao()
+
+    def close(spider, reason):
+        spider.dataMonitor.updateTotal('wangyi_total')
 
     def start_requests(self):
             # 检测网络

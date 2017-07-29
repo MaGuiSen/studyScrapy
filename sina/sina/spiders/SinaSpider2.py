@@ -1,23 +1,20 @@
 # -*- coding: utf-8 -*-
-import hashlib
 import random
-import json
-import re
-
-import scrapy
 import time
+
+import demjson
+import scrapy
 from scrapy import Selector
 
+from libMe.db.DataMonitorDao import DataMonitorDao
 from libMe.db.LogDao import LogDao
 from libMe.util import CssUtil
+from libMe.util import EncodeUtil
 from libMe.util import EncryptUtil
 from libMe.util import NetworkUtil
-from libMe.util import EncodeUtil
 from libMe.util import TimerUtil
 from ..db.CheckDao import CheckDao
 from ..items import ContentItem
-
-import demjson
 
 
 # 60s整体刷新一次
@@ -37,6 +34,10 @@ class SinaSpider(scrapy.Spider):
         self.css = {
             'hash': 'style'
         }
+        self.dataMonitor = DataMonitorDao()
+
+    def close(spider, reason):
+        spider.dataMonitor.updateTotal('sina_total')
 
     def start_requests(self):
         # while True:
