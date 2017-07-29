@@ -87,7 +87,7 @@ class WXDetailSpider(scrapy.Spider):
             self.logDao.info(u'访问过多被禁止,重新拨号')
             # 获取Ip # 同时空线程30s
             NetworkUtil.getNewIp()
-            TimerUtil.sleep(50)
+            TimerUtil.sleep(80)
             NetworkUtil.openWebbrowser(source_url)
         else:
             source = response.meta['source']
@@ -136,7 +136,7 @@ class WXDetailSpider(scrapy.Spider):
             self.logDao.info(u'访问过多被禁止,重新拨号')
             # 获取Ip # 同时空线程30s
             NetworkUtil.getNewIp()
-            TimerUtil.sleep(50)
+            TimerUtil.sleep(80)
             NetworkUtil.openWebbrowser(source_url)
         else:
             wx_account = response.meta['wx_account']

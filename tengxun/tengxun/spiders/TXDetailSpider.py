@@ -39,13 +39,13 @@ class TXDetailSpider(scrapy.Spider):
 
     def start_requests(self):
             # 检测网络
-            if not NetworkUtil.checkNetWork():
+            while not NetworkUtil.checkNetWork():
                 # 20s检测一次
                 TimerUtil.sleep(20)
                 self.logDao.warn(u'检测网络不可行')
 
             # 检测服务器
-            if not NetworkUtil.checkService():
+            while not NetworkUtil.checkService():
                 # 20s检测一次
                 TimerUtil.sleep(20)
                 self.logDao.warn(u'检测服务器不可行')

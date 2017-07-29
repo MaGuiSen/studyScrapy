@@ -8,6 +8,37 @@ class DataMonitorDao(object):
     def __init__(self):
         self.connector = Connector()
 
+    def getAllHeartBeatTime(self,cursor_out=None):
+        """
+                :param cursor_out:
+                :param types:
+                    sina_heartbeat
+                    tengxun_heartbeat
+                    wangyi_heartbeat
+                    weixin_heartbeat
+                    weixin_source_heartbeat
+                :return:
+                得到心跳更新时间
+                """
+        if not cursor_out:
+            cursor = self.connector.cursor()
+            if not cursor:
+                return
+        else:
+            cursor = cursor_out
+
+        typeStr = " where type in ('sina_heartbeat','tengxun_heartbeat','wangyi_heartbeat','weixin_heartbeat','weixin_source_heartbeat')"
+
+        sql_query = "select type, update_time from data_monitor " + typeStr
+        try:
+            cursor.execute(sql_query)
+        except Exception as e:
+            print e.msg
+        results = cursor.fetchall()
+        if not cursor_out:
+            cursor.close()
+        return results or []
+
     def heartBeat(self, type=''):
         """
         :param type:
@@ -46,6 +77,7 @@ class DataMonitorDao(object):
                         "%s, %s, %s, %s); "
             update_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
             values = (type, update_time, info, remark)
+        print u'跳一下', update_time
         try:
             cursor.execute(sql_query, values)
         except Exception as e:
