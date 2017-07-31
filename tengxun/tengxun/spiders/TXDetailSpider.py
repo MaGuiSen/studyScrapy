@@ -33,6 +33,7 @@ class TXDetailSpider(scrapy.Spider):
             'hash': 'style'
         }
         self.dataMonitor = DataMonitorDao()
+        self.logger.info(u'重走init')
 
     def close(spider, reason):
         spider.dataMonitor.updateTotal('tengxun_total')
@@ -124,7 +125,7 @@ class TXDetailSpider(scrapy.Spider):
             else:
                 post_date = (post_date or '')
 
-            post_date = post_date.replace(u'年', '-').replace(u'月', '-').replace(u'日', ' ')
+            post_date = post_date.replace(u'年', '-').replace(u'月', '-').replace(u'日', u' ').replace(u'\xa0', u' ')
 
             try:
                 post_date = time.strftime("%Y-%m-%d %H:%M:%S", time.strptime(post_date, "%Y-%m-%d %H:%M"))

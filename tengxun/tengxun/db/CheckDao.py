@@ -1,13 +1,20 @@
 # -*- coding: utf-8 -*-
+import time
 
 from libMe.db.Connector import Connector
 from libMe.util import EncryptUtil
 
 
 class CheckDao(object):
+
+
     def __init__(self):
         self.connector = Connector()
+        self.hashList = []  # 代表此次已经存在的hash,防止同一时间得到相同文章进行抓取
 
+    def resetHashList(self):
+        # 每次重新抓取的时候清除
+        self.hashList = []
     def checkExist(self, source_url):
         """
         存在逻辑判断
@@ -21,10 +28,13 @@ class CheckDao(object):
         cursor.execute(sql_query, (hash_code,))
         results = cursor.fetchall()
         cursor.close()
-        if results:
+        if results or self.isInHashList(hash_code):
             return True
         else:
             return False
+
+    def isInHashList(self, hash_code):
+        return hash_code in self.hashList
 
     def getHashCode(self, source_url):
         # 具体逻辑
@@ -32,7 +42,7 @@ class CheckDao(object):
 
     def getHtml(self, pageIndex):
         """
-        存在逻辑判断
+        获取所有html逻辑
         :return:
         """
         cursor = self.connector.cursor()
@@ -43,6 +53,29 @@ class CheckDao(object):
         results = cursor.fetchall()
         cursor.close()
         return results or []
+
+    def getPostTime(self, pageIndex):
+        """
+        时间逻辑
+        :return:
+        """
+        cursor = self.connector.cursor()
+        if not cursor:
+            return []
+        sql_query = 'select id,post_date from tengxun_detail group by id limit %s, %s'
+        cursor.execute(sql_query, ((pageIndex - 1) * 15, 15))
+        results = cursor.fetchall()
+        cursor.close()
+        return results or []
+
+    def updatePostTime(self, id, post_date):
+        cursor = self.connector.cursor()
+        if not cursor:
+            return
+        sql_query = "update tengxun_detail set post_date=%s where id=%s"
+        cursor.execute(sql_query, (post_date, id))
+        cursor.close()
+        self.connector.commit()
 
     def updateStyles(self, id, styles):
         cursor = self.connector.cursor()
@@ -65,23 +98,25 @@ class CheckDao(object):
 # checkDao = CheckDao()
 # pageIndex = 1
 # while True:
-#     results = checkDao.getHtml(pageIndex)
+#     results = checkDao.getPostTime(pageIndex)
 #     if not len(results):
 #         print 'end'
 #         break
 #     print 'pageIndex', pageIndex
 #     for result in results:
-#         id, content_html = result
+#         id, post_date = result
+#         print 'in: ', id, post_date
+#         # post_date = post_date.replace(u'\xa0', u' ')
 #         # 处理标签
-#         print id
-#         selector = Selector(text=content_html)
-#         imgAltTitles = selector.xpath('//img/@alt|//img/@title').extract()
-#         # 处理提示块img的 alt title, 关注//img/@alt|//img/@title
-#         print len(imgAltTitles)
-#         for imgAltTitle in imgAltTitles:
-#             if imgAltTitle.strip(' '):
-#                 print 'here', imgAltTitle
-#                 content_html = content_html.replace(imgAltTitle, '')
-#         # 更新
-#         checkDao.updateHtml(id, content_html)
+#         try:
+#             # post_date = time.strptime(post_date, "%Y-%m-%d %H:%M:%S")  # time.strftime("%Y-%m-%d %H:%M:%S", )
+#             timeArray = time.strptime(str(post_date), "%Y-%m-%d %H:%M:%S")
+#             update_time_long = int(time.mktime(timeArray))
+#         except Exception as e:
+#             print u'出错..........................................................................'
+#             pass
+#         print 'out: ', id, update_time_long
+#         x = time.localtime(update_time_long)
+#         print 'out: ', id, time.strftime('%Y-%m-%d %H:%M:%S', x)
+#         # checkDao.updatePostTime(id, post_date)
 #     pageIndex += 1

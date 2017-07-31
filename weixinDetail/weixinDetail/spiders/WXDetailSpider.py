@@ -31,6 +31,7 @@ class WXDetailSpider(scrapy.Spider):
         self.checkDao = CheckDao()
         self.dataMonitor = DataMonitorDao()
         self.wxSources = []
+        self.logger.info(u'重走init')
 
     def close(spider, reason):
         spider.saveStatus('stop')
@@ -38,7 +39,6 @@ class WXDetailSpider(scrapy.Spider):
         for source in spider.wxSources:
             (id, wx_name, wx_account, wx_url, wx_avatar, update_status, is_enable, update_time) = source
             spider.dataMonitor.updateTotal('weixin_account_total', account=wx_account)
-
 
     def start_requests(self):
         # unKnow = ["didalive", "HIS_Technology", "ad_helper", "zhongduchongdu"]; 是搜索不到的
@@ -114,12 +114,14 @@ class WXDetailSpider(scrapy.Spider):
                             if self.checkDao.checkExist(title, wx_account, 1):
                                 self.logDao.info(u'已经存在' + wx_account + ':' + title)
                                 continue
+
                             detailUrl = app_msg_ext_info['content_url'] or ''
                             detailUrl = "http://mp.weixin.qq.com" + detailUrl
                             detailUrl = detailUrl.replace("amp;", "")
                             self.logDao.info(u'抓取' + wx_account + ':' + title + ':' + detailUrl)
                             if not detailUrl:
                                 continue
+
                             yield scrapy.Request(url=detailUrl,
                                                  meta={'request_type': 'weixin_detail', 'wx_account': wx_account,
                                                        "source": source, "title": title, 'wx_account_id': wx_account_id,
@@ -267,21 +269,3 @@ class WXDetailSpider(scrapy.Spider):
         finally:
             if f:
                 f.close()
-
-
-"""
-2017-07-21 17:47:12 [scrapy.pipelines.files] ERROR: File (unknown-error): Error processing file from <GET http://mmbiz.qpic.cn/mmbiz_png/fdj3u9OyUyE4JWLkEdTzCDY7vbzWcsNZDgcAia0rYhJZkbOIBW1rjZHb8icUut2w6Pb9CBotp5ic9wibMkKjWxM1ZA/0?wx_fmt=png> referred in <None>
-Traceback (most recent call last):
-  File "C:\Python27\lib\site-packages\scrapy\pipelines\files.py", line 356, in media_downloaded
-    checksum = self.file_downloaded(response, request, info)
-  File "C:\Python27\lib\site-packages\scrapy\pipelines\images.py", line 98, in file_downloaded
-    return self.image_downloaded(response, request, info)
-  File "C:\Python27\lib\site-packages\scrapy\pipelines\images.py", line 102, in image_downloaded
-    for path, image, buf in self.get_images(response, request, info):
-  File "C:\Python27\lib\site-packages\scrapy\pipelines\images.py", line 115, in get_images
-    orig_image = Image.open(BytesIO(response.body))
-  File "C:\Python27\lib\site-packages\PIL\Image.py", line 2452, in open
-    % (filename if filename else fp))
-IOError: cannot identify image file <cStringIO.StringI object at 0x00000000083D3360>
-
-"""

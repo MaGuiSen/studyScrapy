@@ -7,6 +7,11 @@ from libMe.util import EncryptUtil
 class CheckDao(object):
     def __init__(self):
         self.connector = Connector()
+        self.hashList = []  # 代表此次已经存在的hash,防止同一时间得到相同文章进行抓取
+
+    def resetHashList(self):
+        # 每次重新抓取的时候清除
+        self.hashList = []
 
     def checkExist(self, source_url):
         """
@@ -21,10 +26,13 @@ class CheckDao(object):
         cursor.execute(sql_query, (hash_code,))
         results = cursor.fetchall()
         cursor.close()
-        if results:
+        if results or self.isInHashList(hash_code):
             return True
         else:
             return False
+
+    def isInHashList(self, hash_code):
+        return hash_code in self.hashList
 
     def getHashCode(self, source_url):
         # 具体逻辑

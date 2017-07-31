@@ -54,3 +54,7 @@ class Connector(object):
                     self.commit()
                 except Exception:
                     pass
+
+    def close(self):
+        if self.connector:
+            self.connector.close()

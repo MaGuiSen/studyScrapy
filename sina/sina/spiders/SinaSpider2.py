@@ -35,6 +35,7 @@ class SinaSpider(scrapy.Spider):
             'hash': 'style'
         }
         self.dataMonitor = DataMonitorDao()
+        self.logger.info(u'重走init')
 
     def close(spider, reason):
         spider.dataMonitor.updateTotal('sina_total')
@@ -95,7 +96,7 @@ class SinaSpider(scrapy.Spider):
                     self.logDao.info(u'文章已经存在：' + title + source_url)
                     continue
                 self.logDao.info(u"开始抓取文章：" + source_url)
-                # item['url'] = "http://tech.sina.com.cn/i/2017-07-21/doc-ifyihrmf3085159.shtml"
+                # item['url'] = "http://tech.sina.com.cn/d/f/2017-07-31/doc-ifyinvwu3872514.shtml"
                 yield scrapy.Request(url=item['url'],
                                      meta={'request_type': 'sina_detail', 'category': channel_name,
                                            'title': title, 'source_url': source_url},
@@ -126,7 +127,7 @@ class SinaSpider(scrapy.Spider):
                     self.logDao.info(u'文章已经存在：' + title + source_url)
                     continue
                 self.logDao.info(u"开始抓取文章：" + item['url'])
-                # item['url'] = "http://tech.sina.com.cn/i/2017-07-21/doc-ifyihrmf3085159.shtml"
+                # item['url'] = "http://tech.sina.com.cn/d/f/2017-07-31/doc-ifyinvwu3872514.shtml"
                 yield scrapy.Request(url=item['url'],
                                      meta={'request_type': 'sina_detail', 'category': channel_name,
                                            'title': title, 'source_url': source_url},
@@ -193,7 +194,7 @@ class SinaSpider(scrapy.Spider):
                 # TODO...之后处理 取出标题类型
                 allTxt = item.xpath('.//text()').extract()
                 allTxt = ''.join(allTxt).replace('\t', '')
-                if u'来源：' in allTxt:
+                if u'来源：' in allTxt and len(allTxt) < 25:
                     # 说明这是真正的来源
                     if not post_user:
                         # 先替换作者 ，如果不存在的话

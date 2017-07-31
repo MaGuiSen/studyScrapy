@@ -37,6 +37,7 @@ class DataMonitorDao(object):
         results = cursor.fetchall()
         if not cursor_out:
             cursor.close()
+            self.connector.close()
         return results or []
 
     def heartBeat(self, type=''):
@@ -84,6 +85,7 @@ class DataMonitorDao(object):
             print e.msg
         cursor.close()
         self.connector.commit()
+        self.connector.close()
 
     def updateTotal(self, type, account=''):
         """

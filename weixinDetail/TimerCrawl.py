@@ -8,19 +8,19 @@ import datetime
 from apscheduler.schedulers.blocking import BlockingScheduler
 from libMe.db.DataMonitorDao import DataMonitorDao
 
-dataMonitor = DataMonitorDao()
-
 # 为了处理：No handlers could be found for logger “apscheduler.scheduler”
-logger = logging.getLogger('apscheduler.executors.default')
-logger.setLevel(logging.INFO)  # DEBUG
-fmt = logging.Formatter('%(levelname)s:%(name)s:%(message)s')
-h = logging.StreamHandler()
-h.setFormatter(fmt)
-logger.addHandler(h)
+# logger = logging.getLogger('apscheduler.executors.default')
+# logger.setLevel(logging.INFO)  # DEBUG
+# fmt = logging.Formatter('%(levelname)s:%(name)s:%(message)s')
+# h = logging.StreamHandler()
+# h.setFormatter(fmt)
+# logger.addHandler(h)
+logging.basicConfig()
 
 
 def heartBeat():
     # 心跳
+    dataMonitor = DataMonitorDao()
     dataMonitor.heartBeat('weixin_heartbeat')
 
 
@@ -34,7 +34,7 @@ def start():
     start_spider('wx_detail')
 
 
-timeSpace = 10 * 60 * 6 * 2
+timeSpace = 10 * 60
 heartTime = 1 * 60  # 心跳跳动时间间隔
 scheduler = BlockingScheduler(daemonic=False)
 scheduler.add_job(heartBeat, 'interval', seconds=heartTime)

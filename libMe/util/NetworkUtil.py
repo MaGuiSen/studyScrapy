@@ -41,3 +41,6 @@ def getNewIp():
         return response.code == 200
     except Exception:
         return False
+
+
+response = urllib.urlopen('https://www.baidu.com')

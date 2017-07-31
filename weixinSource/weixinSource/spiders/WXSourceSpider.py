@@ -26,6 +26,7 @@ class WXSourceSpider(scrapy.Spider):
         self.currIp = ''
         self.logDao = LogDao(self.logger, 'weixin_source_catch')
         self.dataMonitor = DataMonitorDao()
+        self.logger.info(u'重走init')
 
     def close(spider, reason):
         spider.saveStatus('stop')
