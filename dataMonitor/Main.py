@@ -2,6 +2,7 @@
 
 
 import logging
+import random
 import time
 
 import datetime
@@ -40,21 +41,20 @@ def mail(info):
 #     print("filed")  # 如果发送失败则会返回filed
 
 # 为了处理：No handlers could be found for logger “apscheduler.scheduler”
-# logger = logging.getLogger('apscheduler.executors.default')
-# logger.setLevel(logging.INFO)  # DEBUG
-# fmt = logging.Formatter('%(levelname)s:%(name)s:%(message)s')
-# h = logging.StreamHandler()
-# h.setFormatter(fmt)
-# logger.addHandler(h)
 logging.basicConfig()
 
 lastSendTime = int(time.time())
 
 
 def checkNeedSend():
+    # 如果在晚上12点到早上6点不爬
+    hour = datetime.datetime.now().hour
+    if 0 <= hour <= 6:
+        return False
+
     currTime = int(time.time())
     global lastSendTime
-    if currTime - lastSendTime > 10 * 60:
+    if currTime - lastSendTime > 30 * 60:
         return True
     else:
         return False
@@ -82,17 +82,16 @@ def heartBeat():
         update_time_long = int(time.mktime(timeArray))
         print 'that: ', update_time
         if outOfData(update_time_long):
-            print 'outOfData', type, update_time
+            print 'outOfData--------', type, update_time
             needSendTypes.append((type, update_time))
 
     if len(needSendTypes) and checkNeedSend():
-        print 'need send email'
-        # ret = mail(','.join(needSendTypes))
-        # if ret:
-        print needSendTypes
+        print '-------need send email---------'
+        randomStr = str(random.uniform(0, 1))
+        ret = mail(randomStr + ':' + ','.join(needSendTypes))
         for type, update_time in needSendTypes:
             print type, update_time
-        if True:
+        if ret:
             print 'send_success'
             global lastSendTime
             lastSendTime = int(time.time())
@@ -104,6 +103,6 @@ scheduler.add_job(heartBeat, 'interval', seconds=heartTime,
                   start_date=datetime.datetime.now() + datetime.timedelta(seconds=5))
 scheduler.start()
 
-'2017-07-25 12:38:00'
+
 
 

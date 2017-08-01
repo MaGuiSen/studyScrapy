@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import json
-import time
 
 import scrapy
 from scrapy import Selector
@@ -33,8 +32,6 @@ class WXSourceSpider(scrapy.Spider):
         spider.dataMonitor.updateTotal('weixin_source_total')
 
     def start_requests(self):
-        # TODO..加上while可能有问题，有些抓不到
-        # while True:
         # 如果正在爬，就不请求
         status = self.getStatus()
         if status == 'running':
@@ -53,7 +50,6 @@ class WXSourceSpider(scrapy.Spider):
             # 20s检测一次
             TimerUtil.sleep(20)
             self.logDao.warn(u'检测服务器不可行')
-            # continue
 
         # 进行爬虫
         # 获取源  可用的，且（是更新失败的，或者最新的同时更新时间跟当前相比大于40分钟）

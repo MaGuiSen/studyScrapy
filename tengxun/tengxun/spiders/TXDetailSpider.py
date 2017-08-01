@@ -142,6 +142,7 @@ class TXDetailSpider(scrapy.Spider):
             if not len(content_items):
                 self.logDao.info(u'不存在内容：' + source_url)
                 return
+
             # 得到纯文本
             content_txt = []
             for item in content_items:

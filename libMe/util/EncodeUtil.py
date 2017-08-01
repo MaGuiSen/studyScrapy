@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
+
 def getCoding(strInput):
-    '''
+    """
     获取编码格式
-    '''
+    """
     if isinstance(strInput, unicode):
         return "unicode"
     try:
@@ -19,10 +20,10 @@ def getCoding(strInput):
 
 
 def toUnicode(strInput):
-    '''
+    """
     得到unicode
     :return:
-    '''
+    """
     strCodingFmt = getCoding(strInput)
     if strCodingFmt == "utf8":
         return strInput.decode('utf8')
@@ -33,9 +34,9 @@ def toUnicode(strInput):
 
 
 def tran2UTF8(strInput):
-    '''
+    """
     转化为utf8格式
-    '''
+    """
     strCodingFmt = getCoding(strInput)
     if strCodingFmt == "utf8":
         return strInput
@@ -46,9 +47,9 @@ def tran2UTF8(strInput):
 
 
 def tran2GBK(strInput):
-    '''
+    """
     转化为gbk格式
-    '''
+    """
     strCodingFmt = getCoding(strInput)
     if strCodingFmt == "gbk":
         return strInput

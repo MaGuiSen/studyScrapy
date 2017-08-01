@@ -2,6 +2,7 @@
 import json
 import re
 
+import datetime
 import demjson
 import scrapy
 import time
@@ -32,8 +33,12 @@ class WXDetailSpider(scrapy.Spider):
         self.dataMonitor = DataMonitorDao()
         self.wxSources = []
         self.logger.info(u'重走init')
+        self.brokenAccounts = []  # 当前被禁止了的账号，下次抓取优先抓取
 
     def close(spider, reason):
+        # 存被禁止的微信账号
+        spider.saveBrokenAccounts(spider.brokenAccounts)
+        # 缓存状态
         spider.saveStatus('stop')
         spider.dataMonitor.updateTotal('weixin_total')
         for source in spider.wxSources:
@@ -41,30 +46,45 @@ class WXDetailSpider(scrapy.Spider):
             spider.dataMonitor.updateTotal('weixin_account_total', account=wx_account)
 
     def start_requests(self):
-        # unKnow = ["didalive", "HIS_Technology", "ad_helper", "zhongduchongdu"]; 是搜索不到的
-        # TODO..加上while可能有问题，有些可能抓不到
-        # while True:
+        # 如果在晚上12点到早上6点不爬
+        hour = datetime.datetime.now().hour
+        if 0 <= hour <= 6:
+            self.logDao.info(u'这个时间不爬。0-6点')
+            return
+
         # 如果正在爬，就不请求
         status = self.getStatus()
         if status == 'running':
             return
         self.saveStatus('running')
+
         # 检测网络
         while not NetworkUtil.checkNetWork():
             # 20s检测一次
             TimerUtil.sleep(20)
             self.logDao.warn(u'检测网络不可行')
-            # continue
 
         # 检测服务器
         while not NetworkUtil.checkService():
             # 20s检测一次
             TimerUtil.sleep(20)
             self.logDao.warn(u'检测服务器不可行')
-            # continue
 
         # 获取源  可用有值
         sources = self.wxSourceDao.queryWxUrl(isRandom=True)
+
+        # 排序优先
+        update_time, brokenAccounts = self.getBrokenAccounts()
+        firstGroup = []
+        secondGroup = []
+        for source in sources:
+            (id, wx_name, wx_account, wx_url, wx_avatar, update_status, is_enable, update_time) = source
+            if wx_account in brokenAccounts:
+                firstGroup.append(source)
+            else:
+                secondGroup.append(source)
+        sources = firstGroup + secondGroup
+
         self.wxSources = sources
         for source in sources:
             (id, wx_name, wx_account, wx_url, wx_avatar, update_status, is_enable, update_time) = source
@@ -81,17 +101,19 @@ class WXDetailSpider(scrapy.Spider):
         body = EncodeUtil.toUnicode(response.body)
         selector = Selector(text=body)
         source_url = response.meta['source_url']
+        wx_account = response.meta['wx_account']
         title = selector.xpath('//title/text()').extract_first('').strip(u' ')
         isN = u"请输入验证码" == title
         if isN or response.status == 302:
             self.logDao.info(u'访问过多被禁止,重新拨号')
+            # 存起来
+            self.brokenAccounts.append(wx_account)
             # 获取Ip # 同时空线程30s
             NetworkUtil.getNewIp()
             TimerUtil.sleep(80)
             NetworkUtil.openWebbrowser(source_url)
         else:
             source = response.meta['source']
-            wx_account = response.meta['wx_account']
             wx_account_id = response.meta['wx_account_id']
             self.logDao.info(u'开始解析列表:' + wx_account)
             # 进行解析
@@ -133,15 +155,17 @@ class WXDetailSpider(scrapy.Spider):
         selector = Selector(text=body)
         title = selector.xpath('//title/text()').extract_first('').strip(u' ')
         source_url = response.meta['source_url']
+        wx_account = response.meta['wx_account']
         isN = u"请输入验证码" == title
         if isN or response.status == 302:
             self.logDao.info(u'访问过多被禁止,重新拨号')
+            # 存起来
+            self.brokenAccounts.append(wx_account)
             # 获取Ip # 同时空线程30s
             NetworkUtil.getNewIp()
             TimerUtil.sleep(80)
             NetworkUtil.openWebbrowser(source_url)
         else:
-            wx_account = response.meta['wx_account']
             title = response.meta['title']
             source_url = response.meta['source_url']
             wx_account_id = response.meta['wx_account_id']
@@ -253,19 +277,41 @@ class WXDetailSpider(scrapy.Spider):
             f.write(content.encode("utf8"))
         self.log('Saved file %s' % filename)
 
-    def getStatus(self):
+    def getBrokenAccounts(self):
+        loadF = None
         try:
-            with open("catchStatus.json", 'r') as load_f:
-                aa = json.load(load_f)
+            with open("brokenAccount.json", 'r') as loadF:
+                aa = json.load(loadF)
+                return aa.get('update_time', ''), aa.get('accounts', [])
+        finally:
+            if loadF:
+                loadF.close()
+
+    def saveBrokenAccounts(self, accounts):
+        loadF = None
+        try:
+            with open("brokenAccount.json", "w") as loadF:
+                update_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+                json.dump({'update_time': update_time, 'accounts': accounts}, loadF)
+        finally:
+            if loadF:
+                loadF.close()
+
+    def getStatus(self):
+        loadF = None
+        try:
+            with open("catchStatus.json", 'r') as loadF:
+                aa = json.load(loadF)
                 return aa.get('status')
         finally:
-            if load_f:
-                load_f.close()
+            if loadF:
+                loadF.close()
 
     def saveStatus(self, status):
+        loadF = None
         try:
-            with open("catchStatus.json", "w") as f:
-                json.dump({'status': status}, f)
+            with open("catchStatus.json", "w") as loadF:
+                json.dump({'status': status}, loadF)
         finally:
-            if f:
-                f.close()
+            if loadF:
+                loadF.close()

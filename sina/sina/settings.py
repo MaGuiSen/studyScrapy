@@ -16,18 +16,6 @@ NEWSPIDER_MODULE = 'sina.spiders'
 
 LOG_LEVEL = 'INFO'
 
-#Mysql数据库的配置信息
-MYSQL_HOST = '117.29.166.222'
-MYSQL_DBNAME = 'trivest_spider'         #数据库名字，请修改
-MYSQL_USER = 'root'             #数据库账号，请修改
-MYSQL_PASSWD = '522admin#eping'         #数据库密码，请修改
-MYSQL_PORT = 4360               #数据库端口，在dbhelper中使用
-# MYSQL_HOST = 'localhost'
-# MYSQL_DBNAME = 'scrapy'         #数据库名字，请修改
-# MYSQL_USER = 'root'             #数据库账号，请修改
-# MYSQL_PASSWD = '123456'         #数据库密码，请修改
-# MYSQL_PORT = 3306               #数据库端口，在dbhelper中使用
-
 USER_AGENTS = [
     "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; AcooBrowser; .NET CLR 1.1.4322; .NET CLR 2.0.50727)",
     "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0; Acoo Browser; SLCC1; .NET CLR 2.0.50727; Media Center PC 5.0; .NET CLR 3.0.04506)",

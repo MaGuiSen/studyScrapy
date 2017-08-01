@@ -2,6 +2,7 @@
 from qcloud_cos import CosClient
 from qcloud_cos import UploadFileRequest
 import os
+from libMe.util import TimerUtil
 
 
 def fileIsExist(pathAndName):
@@ -57,19 +58,27 @@ class UploadUtil(object):
         :param path
         :return:
         """
-        # 得到hash
-        uploadName = path.replace('full/', '')
-        request = UploadFileRequest(u"crawler", self.cos_path + uploadName,
-                                    self.local_path + path,
-                                    insert_only=0)
-        upload_file_ret = self.cos_client.upload_file(request)
-
+        counter = 0
         url = ''
-        if upload_file_ret['code'] == 0:
-            data = upload_file_ret['data'] or {}
-            url = data['source_url']
-            print u'上传成功', url
-        else:
-            print u'上传图片失败', upload_file_ret
-
+        while counter != 10:
+            try:
+                # 得到hash
+                uploadName = path.replace('full/', '')
+                request = UploadFileRequest(u"crawler", self.cos_path + uploadName,
+                                            self.local_path + path,
+                                            insert_only=0)
+                upload_file_ret = self.cos_client.upload_file(request)
+                if upload_file_ret['code'] == 0:
+                    data = upload_file_ret['data'] or {}
+                    url = data['source_url']
+                    print u'上传成功', url
+                else:
+                    print u'上传图片失败', upload_file_ret
+                break
+            except Exception as e:
+                counter += 1
+                TimerUtil.sleep(10)
         return url
+
+# print UploadUtil('','').upload('')
+

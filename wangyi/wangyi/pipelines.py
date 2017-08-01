@@ -54,9 +54,9 @@ class MysqlPipeline(object):
                     item['src_ref'],
                     update_time))
                 spider.logDao.info(u'存网易详情：' + item['title'] + u'  成功' + u' ' + item['post_date'])
-            except Exception, e:
+            except Exception as e:
+                spider.logDao.warn(str(e))
                 spider.logDao.warn(u'存网易详情：' + item['title'] + u'  失败')
-                spider.logDao.warn(e.msg)
         else:
             pass
         cursor.close()
@@ -80,13 +80,10 @@ class MyImagesPipeline(ImagesPipeline):
 
     def item_completed(self, results, item, info):
         # [{path:'', url:''}]
-        image_urls = []
         for ok, x in results:
             if ok:
                 url = x['url']
                 path = x['path']
-                # # TODO...
-                # break
                 imgUrl = self.fileUtil.upload(path)
                 if imgUrl:
                     # 拿出内容，然后替换路径为url

@@ -31,3 +31,4 @@ class ExceptionMiddleware(object):
 
     def process_exception(self, request, exception, spider):
         print 'process_exception', exception
+        spider.logDao.info(u'抓取异常：' + exception.message)
