@@ -8,8 +8,12 @@ import config.configutils as cu
 
 
 class Connector(object):
-    def __init__(self):
-        self.configPath = os.path.join(os.path.dirname(__file__) + "/config/db_config_inner.ini")
+    def __init__(self, isLocalDB=False):
+        """
+        :param isLocalDB: 是否是本地的数据库，默认是远程
+        """
+        db_config_file = "/config/db_config_local.ini" if isLocalDB else "/config/db_config_inner.ini"
+        self.configPath = os.path.join(os.path.dirname(__file__) + db_config_file)
         config = cu.read_db_config(self.configPath)
         self.dbConfig = dict({"connection_timeout": 3600}, **config)
         self.connector = None

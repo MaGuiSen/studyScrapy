@@ -2,18 +2,24 @@
 
 import logging
 
+import subprocess
+
 import datetime
 from apscheduler.schedulers.blocking import BlockingScheduler
-import subprocess
 from libMe.db.DataMonitorDao import DataMonitorDao
 # 为了处理：No handlers could be found for logger “apscheduler.scheduler”
+# logger = logging.getLogger('apscheduler.executors.default')
+# logger.setLevel(logging.INFO)  # DEBUG
+# fmt = logging.Formatter('%(levelname)s:%(name)s:%(message)s')
+# h = logging.StreamHandler()
+# h.setFormatter(fmt)
+# logger.addHandler(h)
 logging.basicConfig()
-
 
 def heartBeat():
     # 心跳
     dataMonitor = DataMonitorDao()
-    dataMonitor.heartBeat('sina_heartbeat')
+    # dataMonitor.heartBeat('demoName_heartbeat')
 
 
 def start_spider(spider_name):
@@ -23,26 +29,18 @@ def start_spider(spider_name):
 
 
 def start():
-    start_spider('sina2')
+    start_spider('demoName_detail')
 
 
-def startHistory():
-    start_spider('sina_history')
-
-historyTimeSpace = 10 * 60 * 6 * 6  # 6个小时走一轮补充
 timeSpace = 10 * 60
 heartTime = 1 * 60  # 心跳跳动时间间隔
 scheduler = BlockingScheduler(daemonic=False)
-
 scheduler.add_job(heartBeat, 'interval', seconds=heartTime)
 # 先马上开始执行
 scheduler.add_job(start, 'date')
 # 后再抓取之后的某个时间段开始间隔执行
 scheduler.add_job(start, 'interval', seconds=timeSpace,
                   start_date=datetime.datetime.now() + datetime.timedelta(seconds=timeSpace))
-# 6个小时补充一轮
-scheduler.add_job(startHistory, 'interval', seconds=historyTimeSpace,
-                  start_date=datetime.datetime.now() + datetime.timedelta(seconds=historyTimeSpace))
 scheduler.start()
 
 

@@ -30,7 +30,7 @@ class UploadUtil(object):
 
     def uploadList(self, listFile):
         """
-            cos_path:/news/wangyi/image/
+            cos_path:/news/jiemian/image/
         :param listFile: [{url,path},{}]
         :return:
         """
@@ -54,7 +54,7 @@ class UploadUtil(object):
 
     def upload(self, path):
         """
-            cos_path:/news/wangyi/image/
+            cos_path:/news/jiemian/image/
         :param path
         :return:
         """

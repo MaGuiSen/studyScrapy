@@ -67,6 +67,5 @@
 #         return False
 # print checkNeedSend()
 
-a = [1,2,3]
-b = [2, 3, 4]
-print a+b
+for index in range(1,30):
+    print index
