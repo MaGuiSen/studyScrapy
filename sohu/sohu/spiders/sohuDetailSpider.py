@@ -69,7 +69,7 @@ class TXDetailSpider(scrapy.Spider):
             self.logDao.info(u'访问过多被禁止')
         else:
             # 格式化
-            articles = demjson.decode(body.lstrip('/**/').lstrip('(').rstrip(')')) or {}
+            articles = demjson.decode(body.lstrip('/**/').lstrip('(').rstrip(';').rstrip(')')) or []
             if not articles:
                 self.logDao.info(u'不存在内容')
                 return
@@ -134,15 +134,15 @@ class TXDetailSpider(scrapy.Spider):
             # 替换样式里面的链接
             styles = CssUtil.clearUrl(styles)
 
-            content_html = selector.xpath('//div[@class="article"]')
+            content_html = selector.xpath('//*[@class="article"]')
             backHtml = selector.xpath('//*[@id="backsohucom"]').extract_first('')
 
             if not len(content_html):
                 self.logDao.info(u'不存在内容：' + source_url)
                 return
-            # 去除内部不需要的标签
+            # 去除内部不需要的标签u'<p data-role="editor-name">责任编辑：<span></span></p>'
             # 完整案例：content_html.xpath('*[not(boolean(@class="entHdPic" or @class="ep-source cDGray")) and not(name(.)="script")]').extract()
-            content_items = content_html.xpath('*[not(name(.)="script") and not(name(.)="style")  and not(name(.)="iframe")]')
+            content_items = content_html.xpath('*[not(name(.)="script") and not(name(.)="style")  and not(name(.)="iframe") and not(boolean(@data-role="editor-name"))]')
             if not len(content_items):
                 self.logDao.info(u'不存在内容：' + source_url)
                 return
@@ -175,6 +175,8 @@ class TXDetailSpider(scrapy.Spider):
                 image_url_base = img.xpath('@src').extract_first('')
                 if image_url_base.startswith('//'):
                     image_url = 'http:' + image_url_base
+                else:
+                    image_url = image_url_base
                 if image_url and image_url.startswith('http'):
                     self.logDao.info(u'得到图片：' + image_url)
                     image_urls.append({
@@ -204,7 +206,7 @@ class TXDetailSpider(scrapy.Spider):
             contentItem['post_date'] = post_date
             contentItem['sub_channel'] = ''
             contentItem['post_user'] = post_user
-            contentItem['tags'] = ''
+            contentItem['tags'] = ','.join(tags)
             contentItem['styles'] = styles
             contentItem['content_html'] = content_html
             contentItem['hash_code'] = hash_code

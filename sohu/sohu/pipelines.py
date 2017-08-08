@@ -22,7 +22,7 @@ from libMe.db.Connector import Connector
 
 class MysqlPipeline(object):
     def __init__(self):
-        self.connector = Connector()
+        self.connector = Connector(isLocalDB=True)
 
     def process_item(self, item, spider):
         cursor = self.connector.cursor()
@@ -30,7 +30,7 @@ class MysqlPipeline(object):
             return item
         if isinstance(item, ContentItem):
             # 如果存在，则不做处理
-            spider.logDao.info(u'存腾讯详情：' + item['title'])
+            spider.logDao.info(u'存搜狐详情：' + item['title'])
             sql = "insert into sohu_detail (" \
                   "content_txt,title,source_url,post_date,sub_channel,post_user,tags,styles," \
                   "content_html,hash_code,info_type,src_source_id,src_channel,src_ref,update_time) " \
@@ -54,10 +54,10 @@ class MysqlPipeline(object):
                     item['src_channel'],
                     item['src_ref'],
                     update_time))
-                spider.logDao.info(u'存腾讯详情：' + item['title'] + u'  成功' + u' ' + item['post_date'])
+                spider.logDao.info(u'存搜狐详情：' + item['title'] + u'  成功' + u' ' + item['post_date'])
             except Exception as e:
                 spider.logDao.warn(str(e))
-                spider.logDao.warn(u'存腾讯详情：' + item['title'] + u'  失败')
+                spider.logDao.warn(u'存搜狐详情：' + item['title'] + u'  失败')
         else:
             pass
         cursor.close()

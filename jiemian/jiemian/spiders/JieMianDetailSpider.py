@@ -231,7 +231,8 @@ class TXDetailSpider(scrapy.Spider):
                 image_url_base = img.xpath('@src').extract_first('')
                 if image_url_base.startswith('//'):
                     image_url = 'http:' + image_url_base
-
+                else:
+                    image_url = image_url_base
                 if image_url and image_url.startswith('http'):
                     self.logDao.info(u'得到图片：' + image_url)
                     image_urls.append({
