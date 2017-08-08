@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Scrapy settings for jiemian project
+# Scrapy settings for sohu project
 #
 # For simplicity, this file contains only settings considered important or
 # commonly used. You can find more settings consulting the documentation:
@@ -9,10 +9,10 @@
 #     http://scrapy.readthedocs.org/en/latest/topics/downloader-middleware.html
 #     http://scrapy.readthedocs.org/en/latest/topics/spider-middleware.html
 
-BOT_NAME = 'jiemian'
+BOT_NAME = 'sohu'
 
-SPIDER_MODULES = ['jiemian.spiders']
-NEWSPIDER_MODULE = 'jiemian.spiders'
+SPIDER_MODULES = ['sohu.spiders']
+NEWSPIDER_MODULE = 'sohu.spiders'
 
 LOG_LEVEL = 'INFO'
 
@@ -43,17 +43,17 @@ DOWNLOAD_DELAY = 20
 RANDOMIZE_DOWNLOAD_DELAY = True
 
 DOWNLOADER_MIDDLEWARES = {
-   'jiemian.middlewares.ExceptionMiddleware': 543,
-   'jiemian.middlewares.RandomUserAgent': 1
+   'sohu.middlewares.ExceptionMiddleware': 543,
+   'sohu.middlewares.RandomUserAgent': 1
 }
 
 #开启图片管道
 ITEM_PIPELINES = {
-   'jiemian.pipelines.MyImageDownLoad': 40,
-   'jiemian.pipelines.MysqlPipeline': 50,
+   # 'sohu.pipelines.MyImageDownLoad': 40,
+   # 'sohu.pipelines.MysqlPipeline': 50,
 }
 
 #将ＩＭＡＧＥＳ＿ＳＴＯＲＥ设置为一个有效的文件夹，用来存储下载的图片．否则管道将保持禁用状态，即使你在ＩＴＥＭ＿ＰＩＰＥＬＩＮＥＳ设置中添加了它．
 # 图片存储在文件中（一个图片一个文件），并使用它们URL的 SHA1 hash 作为文件名。
-IMAGES_STORE = 'D:\\soft_develop\\workspace\\studyScrapy\\jiemian\\img'
-FILES_STORE = 'D:\\soft_develop\\workspace\\studyScrapy\\jiemian\\file'
+IMAGES_STORE = 'D:\\soft_develop\\workspace\\studyScrapy\\sohu\\img'
+FILES_STORE = 'D:\\soft_develop\\workspace\\studyScrapy\\sohu\\file'

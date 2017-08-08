@@ -27,7 +27,7 @@ class TXDetailSpider(scrapy.Spider):
         self.count = 0
         self.request_stop = False
         self.request_stop_time = 0
-        self.logDao = LogDao(self.logger,'jiemian_list_detail')
+        self.logDao = LogDao(self.logger, 'jiemian_list_detail')
         self.checkDao = CheckDao()
         # 用于缓存css
         self.css = {
@@ -41,28 +41,44 @@ class TXDetailSpider(scrapy.Spider):
         pass
 
     def start_requests(self):
-            # 检测网络
-            while not NetworkUtil.checkNetWork():
-                # 20s检测一次
-                TimerUtil.sleep(20)
-                self.logDao.warn(u'检测网络不可行')
+        # 检测网络
+        while not NetworkUtil.checkNetWork():
+            # 20s检测一次
+            TimerUtil.sleep(20)
+            self.logDao.warn(u'检测网络不可行')
 
-            # 检测服务器
-            while not NetworkUtil.checkService():
-                # 20s检测一次
-                TimerUtil.sleep(20)
-                self.logDao.warn(u'检测服务器不可行')
-            # 必读 玩物 产品榜 快报 游戏要闻 单品 盘点 花边要闻 游戏快报
-            cids = ['6', '66', '73', '84', '100', '119', '120', '121', '122']
-            # 必读
-            url = 'https://a.jiemian.com/index.php?m=lists&a=ajaxlist&callback=&_=1502103362598&page='
-            for cid in cids:
-                for page in range(1, 2):
-                    newUrl = url + str(page) + ('&cid=' + str(cid))
-                    self.logDao.warn(u'进行抓取列表:' + newUrl)
-                    yield scrapy.Request(url=newUrl,
-                                         meta={'request_type': 'jiemian_page_list', 'url': newUrl},
-                                         callback=self.parseArticleList, dont_filter=True)
+        # 检测服务器
+        while not NetworkUtil.checkService():
+            # 20s检测一次
+            TimerUtil.sleep(20)
+            self.logDao.warn(u'检测服务器不可行')
+        # 必读 玩物 产品榜 快报 游戏要闻 单品 盘点 花边要闻 游戏快报
+        cids = [
+            {'src_channel': '界面新闻', 'sub_channel': '界面科技-必读', 'num': '6'},
+            {'src_channel': '界面新闻', 'sub_channel': '界面科技-玩物', 'num': '66'},
+            {'src_channel': '界面新闻', 'sub_channel': '界面科技-产品榜', 'num': '73'},
+            {'src_channel': '界面新闻', 'sub_channel': '界面科技-快报', 'num': '84'},
+            {'src_channel': '界面新闻', 'sub_channel': '界面游戏-游戏要闻', 'num': '100'},
+            {'src_channel': '界面新闻', 'sub_channel': '界面游戏-单品', 'num': '119'},
+            {'src_channel': '界面新闻', 'sub_channel': '界面游戏-盘点', 'num': '120'},
+            {'src_channel': '界面新闻', 'sub_channel': '界面游戏-花边要闻', 'num': '121'},
+            {'src_channel': '界面新闻', 'sub_channel': '界面游戏-游戏快报', 'num': '122'}
+        ]
+        # 必读
+        url = 'https://a.jiemian.com/index.php?m=lists&a=ajaxlist&callback=&_=1502103362598&page='
+        for cid in cids:
+            for page in range(1, 2):
+                cidNum = cid.get('num')
+                src_channel = cid.get('src_channel')
+                sub_channel = cid.get('sub_channel')
+                newUrl = url + str(page) + ('&cid=' + cidNum)
+                self.logDao.warn(u'进行抓取列表:' + newUrl)
+                yield scrapy.Request(url=newUrl,
+                                     meta={'request_type': 'jiemian_page_list', 'url': newUrl,
+                                           'src_channel': src_channel,
+                                           'sub_channel': sub_channel
+                                           },
+                                     callback=self.parseArticleList, dont_filter=True)
 
     # TODO...还没有遇到被禁止的情况
     def parseArticleList(self, response):
@@ -77,25 +93,34 @@ class TXDetailSpider(scrapy.Spider):
                 self.logDao.info(u'不存在内容')
                 return
             self.logDao.info(u'开始解析列表')
+            src_channel = response.meta['src_channel']
+            sub_channel = response.meta['sub_channel']
             selector = Selector(text=rst)
-            articles = selector.xpath('//div[@class="news-img"]/a')
+            articles = selector.xpath('//div[boolean(contains(@class,"news-view"))]')
             for article in articles:
-                source_url = article.xpath('@href').extract_first('')
-                title = article.xpath('@title').extract_first('')
-                # 如果存在则不抓取
-                if self.checkDao.checkExist(source_url):
-                    self.logDao.info(u'文章已经存在' + title+':' + source_url)
-                    continue
+                source_url = article.xpath('.//div[@class="news-header"]//a/@href').extract_first('')
+                title = article.xpath(
+                    './/div[@class="news-header"]//a/@title | .//div[@class="news-header"]//a/text()').extract_first('')
+                post_date = article.xpath('.//div[@class="news-footer"]//span[@class="date"]/text()').extract_first('')
+                tags = article.xpath('.//div[@class="news-tag"]/a/text()').extract()
 
                 if not source_url:
-                    self.logDao.info(u'文章不存在' + title + ':' + source_url)
+                    self.logDao.info(u'文章不存在' + title + ':' + source_url + ':' + post_date)
                     continue
 
-                self.logDao.info(u'抓取文章' + title + ':' +  source_url)
+                # 如果存在则不抓取
+                if self.checkDao.checkExist(source_url):
+                    self.logDao.info(u'文章已经存在' + title + ':' + source_url + ':' + post_date)
+                    continue
+
+                self.logDao.info(u'抓取文章' + title + ':' + source_url + ':' + post_date)
 
                 yield scrapy.Request(url=source_url,
-                                     meta={'request_type': 'jiemian_detail', "title": title,
-                                           "source_url": source_url},
+                                     meta={'request_type': 'jiemian_detail', "title": title, 'post_date': post_date,
+                                           'sub_channel': sub_channel,
+                                           'src_channel': src_channel,
+                                           'tags': tags,
+                                           'source_url': source_url},
                                      callback=self.parseArticle)
 
     def parseArticle(self, response):
@@ -106,6 +131,9 @@ class TXDetailSpider(scrapy.Spider):
             title = response.meta['title']
             post_date = response.meta['post_date']
             source_url = response.meta['source_url']
+            sub_channel = response.meta['sub_channel']
+            src_channel = response.meta['src_channel']
+            tags = response.meta['tags']
             self.logDao.info(u'开始解析文章:' + title + ':' + post_date + ':' + source_url)
 
             selector = Selector(text=body)
@@ -114,6 +142,8 @@ class TXDetailSpider(scrapy.Spider):
             styleUrls = selector.xpath('//link[@rel="stylesheet"]/@href').extract()
             styleList = []
             for styleUrl in styleUrls:
+                if styleUrl.startswith('//'):
+                    styleUrl = 'http:' + styleUrl
                 # 得到hash作为key
                 styleUrlHash = EncryptUtil.md5(styleUrl)
                 if not self.css.get(styleUrlHash):
@@ -125,36 +155,52 @@ class TXDetailSpider(scrapy.Spider):
             # 替换样式里面的链接
             styles = CssUtil.clearUrl(styles)
 
-            category = selector.xpath('//*[@class="a_catalog"]/a/text()|//*[@class="a_catalog"]/text()').extract_first('')
+            post_user = selector.xpath('//div[@class="article-info"]//span[@class="author"]//text()').extract_first('')
 
-            post_user = selector.xpath('//*[@class="a_author"]/text() | //*[@class="where"]/text()| //*[@class="where"]/a/text()').extract_first('')
+            src_ref = src_channel
 
-            src_ref = selector.xpath('//*[@class="a_source"]/text() | //*[@class="a_source"]/a/text()').extract_first('')
-
-            a_time = selector.xpath('//*[@class="a_time"]/text() | //*[@class="pubTime"]/text()').extract_first('')
-
-            if a_time:
-                post_date = a_time
-            else:
-                post_date = (post_date or '')
-
-            post_date = post_date.replace(u'年', '-').replace(u'月', '-').replace(u'日', u' ').replace(u'\xa0', u' ')
+            post_date = selector.xpath('//div[@class="article-info"]//span[@class="date"]//text()').extract_first('')
 
             try:
-                post_date = time.strftime("%Y-%m-%d %H:%M:%S", time.strptime(post_date, "%Y-%m-%d %H:%M"))
+                post_date = time.strftime("%Y-%m-%d %H:%M:%S", time.strptime(post_date, "%Y/%m/%d %H:%M"))
             except Exception:
                 pass
 
-            content_html = selector.xpath('//div[@id="Cnt-Main-Article-QQ"]')
-            if not len(content_html):
-                self.logDao.info(u'不存在内容：' + source_url)
+            tags_ = selector.xpath('//div[@class="article-info"]//*[@class="tags"]//text()').extract()
+            tags = tags + tags_
+            tags = ','.join(tags)
+
+            """
+                article-main
+                    article-img
+                    article-content
+                        p
+                        article-source
+                            p:来源
+                            p:点击下载“界面新闻”APP 不抓
+            """
+
+            # 得到article-img
+            article_img = selector.xpath('//div[@class="article-main"]/div[@class="article-img"]').extract_first('')
+
+            # 得到article-content
+            article_content = selector.xpath('//div[@class="article-main"]/div[@class="article-content"]').extract_first('')
+
+            if not article_content:
+                self.logDao.info(u'文章不存在' + title + ':' + source_url + ':' + post_date)
                 return
-            # 去除内部不需要的标签
-            # 完整案例：content_html.xpath('*[not(boolean(@class="entHdPic" or @class="ep-source cDGray")) and not(name(.)="script")]').extract()
-            content_items = content_html.xpath('*[not(name(.)="script") and not(name(.)="style")  and not(name(.)="iframe") and not(boolean(@class="rv-root-v2 rv-js-root"))]')
-            if not len(content_items):
-                self.logDao.info(u'不存在内容：' + source_url)
-                return
+
+            contentSelector = Selector(text=article_content)
+            content_items = contentSelector.xpath('//div[@class="article-content"]/*[not(name(.)="script") and not('
+                                                  'name(.)="iframe") and not(name(.)="style") and not(boolean( '
+                                                  'contains(a//@href,"?m=app"))) and not(boolean(@class="share-view" '
+                                                  'or @class="article-source"))]')
+
+            # 得到来源 做替换
+            contentSource = contentSelector.xpath('//div[@class="article-content"]/div[@class="article-source"]/p/text()').extract_first('')
+            if contentSource:
+                contentSource = contentSource.replace(u'来源：', u'')
+                src_ref = contentSource
 
             # 得到纯文本
             content_txt = []
@@ -167,11 +213,13 @@ class TXDetailSpider(scrapy.Spider):
             content_txt = '\n'.join(content_txt)
 
             # 组装新的内容标签
-            outHtml = """<div id="Cnt-Main-Article-QQ" class="Cnt-Main-Article-QQ" bosszone="content">${++content++}</div>"""
+            outHtml = u"""<div class="article-main">${++articleImg++}<div class="article-content" style="font-family:
+            'Microsoft YaHei', 黑体;">${++content++}</div></div> """
+
             content_items = content_items.extract()
             content_items = ''.join(content_items)
 
-            content_html = outHtml.replace('${++content++}', content_items)
+            content_html = outHtml.replace('${++articleImg++}', article_img).replace('${++content++}', content_items)
 
             selector = Selector(text=content_html)
             # 解析文档中的所有图片url，然后替换成标识
@@ -180,12 +228,16 @@ class TXDetailSpider(scrapy.Spider):
 
             for img in imgs:
                 # 图片可能放在src 或者data-src
-                image_url = img.xpath('@src').extract_first()
+                image_url_base = img.xpath('@src').extract_first('')
+                if image_url_base.startswith('//'):
+                    image_url = 'http:' + image_url_base
+
                 if image_url and image_url.startswith('http'):
                     self.logDao.info(u'得到图片：' + image_url)
                     image_urls.append({
                         'url': image_url,
                     })
+                    content_html = content_html.replace('&amp;', '&').replace(image_url_base, image_url)
 
             urlHash = EncryptUtil.md5(source_url.encode('utf8'))
             self.saveFile(urlHash, body)
@@ -207,16 +259,16 @@ class TXDetailSpider(scrapy.Spider):
             contentItem['title'] = title
             contentItem['source_url'] = source_url
             contentItem['post_date'] = post_date
-            contentItem['sub_channel'] = category
+            contentItem['sub_channel'] = sub_channel
             contentItem['post_user'] = post_user
-            contentItem['tags'] = ''
+            contentItem['tags'] = tags
             contentItem['styles'] = styles
             contentItem['content_html'] = content_html
             contentItem['hash_code'] = hash_code
             contentItem['info_type'] = 1
-            contentItem['src_source_id'] = 3
+            contentItem['src_source_id'] = 5
             # contentItem['src_account_id'] = 0
-            contentItem['src_channel'] = '腾讯科技'
+            contentItem['src_channel'] = src_channel
             contentItem['src_ref'] = src_ref
             return contentItem
 

@@ -66,6 +66,9 @@
 #     if 0 <= hour <= 6:
 #         return False
 # print checkNeedSend()
+#
+# for index in range(1,30):
+#     print index
+import time
 
-for index in range(1,30):
-    print index
+print time.strftime('%Y %m %d', time.localtime(1502175949000 / 1000))

@@ -30,6 +30,7 @@ class CheckDao(object):
         if results or self.isInHashList(hash_code):
             return True
         else:
+            self.hashList.append(hash_code)
             return False
 
     def isInHashList(self, hash_code):
