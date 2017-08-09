@@ -56,6 +56,8 @@ class SinaSpider(scrapy.Spider):
             self.logDao.warn(u'检测服务器不可行')
             # continue
 
+        src_channel = '新浪科技'
+
         # 进行爬虫
         url = 'http://roll.news.sina.com.cn/interface/rollnews_ch_out_interface.php?col=96&spec=&type=&ch=01&k=&offset_page=0&offset_num=0&num=220&asc=&page=1'
         # url = 'http://tech.sina.com.cn/t/2017-07-24/doc-ifyihrit1274195.shtml'
@@ -63,14 +65,57 @@ class SinaSpider(scrapy.Spider):
         r = random.uniform(0, 1)
         newUrl = url + ('&r=' + str(r))
         self.logDao.info(u"开始抓取列表：" + newUrl)
-        yield scrapy.Request(url=newUrl, meta={'request_type': 'sina_list', 'url': newUrl}, callback=self.parseList)
+        yield scrapy.Request(url=newUrl, meta={'request_type': 'sina_list', 'url': newUrl, 'src_channel': src_channel},
+                             callback=self.parseList)
 
         # 补缺补漏
         url = 'http://feed.mix.sina.com.cn/api/roll/get?pageid=372&lid=2431&k=&num=50&page=1&callback=&_=1501148356254'
         r = random.uniform(0, 1)
         newUrl = url + ('&r=' + str(r))
         self.logDao.info(u"开始抓取列表：" + newUrl)
-        yield scrapy.Request(url=newUrl, meta={'request_type': 'sina_list', 'url': newUrl}, callback=self.parseList2)
+        yield scrapy.Request(url=newUrl, meta={'request_type': 'sina_list', 'url': newUrl, 'src_channel': src_channel},
+                             callback=self.parseList2)
+
+        # 新浪财经 要闻
+        src_channel = '新浪财经'
+        # 补缺补漏
+        url = 'http://finance.sina.com.cn/'
+        newUrl = url
+        self.logDao.info(u"开始抓取列表：" + newUrl)
+        yield scrapy.Request(url=newUrl, meta={'request_type': 'sina_list', 'url': newUrl, 'src_channel': src_channel},
+                             callback=self.parseList3)
+
+    # TODO。。还没有找到被禁止的情况
+    def parseList3(self, response):
+        body = EncodeUtil.toUnicode(response.body)
+        if False:
+            self.logDao.info(u'访问过多被禁止')
+        else:
+            src_channel = response.meta['src_channel']
+            url = response.meta['url']
+            self.logDao.info(u'开始解析列表' + url)
+
+            selector = Selector(text=body)
+            articles = selector.xpath('//*[@id="fin_tabs0_c0"]//a')
+            # 格式化
+            for article in articles:
+                channel_name = u'财经'
+                title = article.xpath('./text()').extract_first('')
+                source_url = article.xpath('./@href').extract_first('')
+                if not source_url:
+                    continue
+
+                callback = self.parseDetail2
+                if self.checkDao.checkExist(source_url):
+                    self.logDao.info(u'文章已经存在：' + title + source_url)
+                    continue
+                self.logDao.info(u"开始抓取文章：" + source_url)
+
+                yield scrapy.Request(url=source_url,
+                                     meta={'request_type': 'sina_detail', 'category': channel_name,
+                                           'src_channel': src_channel,
+                                           'title': title, 'source_url': source_url},
+                                     callback=callback)
 
     # TODO。。还没有找到被禁止的情况
     def parseList2(self, response):
@@ -78,6 +123,7 @@ class SinaSpider(scrapy.Spider):
         if False:
             self.logDao.info(u'访问过多被禁止')
         else:
+            src_channel = response.meta['src_channel']
             url = response.meta['url']
             self.logDao.info(u'开始解析列表' + url)
 
@@ -99,6 +145,7 @@ class SinaSpider(scrapy.Spider):
                 # item['url'] = "http://tech.sina.com.cn/d/f/2017-07-31/doc-ifyinvwu3872514.shtml"
                 yield scrapy.Request(url=item['url'],
                                      meta={'request_type': 'sina_detail', 'category': channel_name,
+                                           'src_channel': src_channel,
                                            'title': title, 'source_url': source_url},
                                      callback=callback)
 
@@ -108,6 +155,7 @@ class SinaSpider(scrapy.Spider):
         if False:
             self.logDao.info(u'访问过多被禁止')
         else:
+            src_channel = response.meta['src_channel']
             url = response.meta['url']
             self.logDao.info(u'开始解析列表' + url)
 
@@ -130,6 +178,7 @@ class SinaSpider(scrapy.Spider):
                 # item['url'] = "http://tech.sina.com.cn/d/f/2017-07-31/doc-ifyinvwu3872514.shtml"
                 yield scrapy.Request(url=item['url'],
                                      meta={'request_type': 'sina_detail', 'category': channel_name,
+                                           'src_channel': src_channel,
                                            'title': title, 'source_url': source_url},
                                      callback=callback)
 
@@ -138,6 +187,7 @@ class SinaSpider(scrapy.Spider):
         if False:
             self.logDao.info(u'访问过多被禁止')
         else:
+            src_channel = response.meta['src_channel']
             category = response.meta['category']
             title = response.meta['title']
             source_url = response.meta['source_url']
@@ -159,21 +209,28 @@ class SinaSpider(scrapy.Spider):
             styles = CssUtil.clearUrl(styles)
             styles = styles.replace('overflow-x:hidden', '').replace('overflow:hidden', '')
 
-            post_date = selector.xpath('//*[@id="pub_date"]/text() | //*[@class="titer"]/text()').extract_first('')
+            title_ = selector.xpath('//*[@id="artibodyTitle"]/text()').extract_first('')
+            if title_:
+                title = title_
+
+            post_date = selector.xpath('//*[@id="pub_date"]/text() | //*[@class="titer"]/text() | //meta[@name="weibo: article:create_at"]/@content').extract_first('')
             post_date = post_date.replace('\r\n', '').strip(' ').replace(u'年', '-').replace(u'月', '-').replace(u'日', ' ')
 
             try:
                 post_date = time.strftime("%Y-%m-%d %H:%M:%S", time.strptime(post_date, "%Y-%m-%d %H:%M"))
             except Exception:
-                pass
+                try:
+                    post_date = time.strftime("%Y-%m-%d %H:%M:%S", time.strptime(post_date, "%Y-%m-%d %H:%M:%S"))
+                except Exception:
+                    pass
 
             src_ref = selector.xpath(
-                '//*[@id="media_name"]/a[1]/text() | //*[@class="source"]/a/text() | //*[@class="source"]/text()').extract_first(
+                '//*[@id="media_name"]/a[1]/text() | //*[@class="source"]/a/text() | //*[@class="source"]/text() | //meta[@name="mediaid"]/@content').extract_first(
                 '')
 
             post_user = selector.xpath('//*[@id="author_ename"]/a/text()').extract_first('')
 
-            tags = selector.xpath('//p[@class="art_keywords"]/a/text()').extract() or []
+            tags = selector.xpath('//p[@class="art_keywords"]/a/text() | //div[@class="article-keywords"]/a/text()').extract() or []
             tags = ','.join(tags)
 
             content_html = selector.xpath('//*[@id="artibody"][1]')
@@ -204,7 +261,7 @@ class SinaSpider(scrapy.Spider):
                 content_txt.append(allTxt)
             content_txt = '\n'.join(content_txt)
             # 组装新的内容标签
-            outHtml = """<div class="content_wrappr_left"><div class="content"><div class="BSHARE_POP blkContainerSblkCon clearfix blkContainerSblkCon_16" id="artibody">${++content++}</div></div></div>"""
+            outHtml = """<div class="content_wrappr_left article article_16"><div class="content"><div class="BSHARE_POP blkContainerSblkCon clearfix blkContainerSblkCon_16" id="artibody">${++content++}</div></div></div>"""
             content_items = content_items.extract()
             content_items = ''.join(content_items)
 
@@ -253,7 +310,7 @@ class SinaSpider(scrapy.Spider):
             contentItem['info_type'] = 1
             contentItem['src_source_id'] = 2
             # contentItem['src_account_id'] = 0
-            contentItem['src_channel'] = '新浪科技'
+            contentItem['src_channel'] = src_channel
             contentItem['src_ref'] = src_ref
             return contentItem
 

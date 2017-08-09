@@ -203,33 +203,34 @@ class TXDetailSpider(scrapy.Spider):
             # 替换样式里面的链接
             styles = CssUtil.clearUrl(styles)
 
-            category = selector.xpath('//*[@class="a_catalog"]/a/text()|//*[@class="a_catalog"]/text()').extract_first('')
+            tags = selector.xpath('//meta[@name="keywords"]/@content').extract_first('')
 
-            post_user = selector.xpath('//*[@class="a_author"]/text() | //*[@class="where"]/text()| //*[@class="where"]/a/text()').extract_first('')
+            category = selector.xpath('//meta[boolean(contains(@name, "og:category"))]/@content').extract_first('')
 
-            src_ref = selector.xpath('//*[@class="a_source"]/text() | //*[@class="a_source"]/a/text()').extract_first('')
+            src_ref = selector.xpath('//span[@class="ss03"]//text() | //div[@id="artical_sth"]/p/text()').extract_first('')
 
-            a_time = selector.xpath('//*[@class="a_time"]/text() | //*[@class="pubTime"]/text()').extract_first('')
-
-            if a_time:
-                post_date = a_time
-            else:
-                post_date = (post_date or '')
-
+            post_date = selector.xpath('//meta[@name="og:time"]/@content').extract_first('')
             post_date = post_date.replace(u'年', '-').replace(u'月', '-').replace(u'日', u' ').replace(u'\xa0', u' ')
 
             try:
-                post_date = time.strftime("%Y-%m-%d %H:%M:%S", time.strptime(post_date, "%Y-%m-%d %H:%M"))
-            except Exception:
+                post_date = time.strftime("%Y-%m-%d %H:%M:%S", time.strptime(post_date, "%Y-%m-%d %H:%M:%S"))
+            except Exception as e:
+                try:
+                    post_date = time.strftime("%Y-%m-%d %H:%M:%S", time.strptime(post_date, "%Y-%m-%d %H:%M"))
+                except Exception as e:
+                    self.logDao.warn(e.msg)
+                    pass
                 pass
 
-            content_html = selector.xpath('//div[@id="Cnt-Main-Article-QQ"]')
+            content_html = selector.xpath('//div[@id="main_content"]')
+            logoHtml = selector.xpath('//span[@class="ifengLogo"]').extract_first('')
+
             if not len(content_html):
                 self.logDao.info(u'不存在内容：' + source_url)
                 return
             # 去除内部不需要的标签
             # 完整案例：content_html.xpath('*[not(boolean(@class="entHdPic" or @class="ep-source cDGray")) and not(name(.)="script")]').extract()
-            content_items = content_html.xpath('*[not(name(.)="script") and not(name(.)="style")  and not(name(.)="iframe") and not(boolean(@class="rv-root-v2 rv-js-root"))]')
+            content_items = content_html.xpath('*[not(name(.)="script") and not(name(.)="style")  and not(name(.)="iframe")]')
             if not len(content_items):
                 self.logDao.info(u'不存在内容：' + source_url)
                 return
@@ -245,11 +246,12 @@ class TXDetailSpider(scrapy.Spider):
             content_txt = '\n'.join(content_txt)
 
             # 组装新的内容标签
-            outHtml = """<div id="Cnt-Main-Article-QQ" class="Cnt-Main-Article-QQ" bosszone="content">${++content++}</div>"""
+            outHtml = """<div id="artical_real" class="js_img_share_area"><div id="main_content" class="js_selection_area" bosszone="content">${++content++}</div></div>"""
             content_items = content_items.extract()
             content_items = ''.join(content_items)
 
             content_html = outHtml.replace('${++content++}', content_items)
+            content_html = content_html.replace(logoHtml, '')
 
             selector = Selector(text=content_html)
             # 解析文档中的所有图片url，然后替换成标识
@@ -286,15 +288,15 @@ class TXDetailSpider(scrapy.Spider):
             contentItem['source_url'] = source_url
             contentItem['post_date'] = post_date
             contentItem['sub_channel'] = category
-            contentItem['post_user'] = post_user
-            contentItem['tags'] = ''
+            contentItem['post_user'] = ''
+            contentItem['tags'] = tags
             contentItem['styles'] = styles
             contentItem['content_html'] = content_html
             contentItem['hash_code'] = hash_code
             contentItem['info_type'] = 1
-            contentItem['src_source_id'] = 3
+            contentItem['src_source_id'] = 8
             # contentItem['src_account_id'] = 0
-            contentItem['src_channel'] = '腾讯科技'
+            contentItem['src_channel'] = '凤凰财经'
             contentItem['src_ref'] = src_ref
             return contentItem
 
