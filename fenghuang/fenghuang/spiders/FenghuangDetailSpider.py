@@ -26,7 +26,7 @@ class TXDetailSpider(scrapy.Spider):
         self.count = 0
         self.request_stop = False
         self.request_stop_time = 0
-        self.logDao = LogDao(self.logger,'fenghuang_list_detail')
+        self.logDao = LogDao(self.logger, 'fenghuang_list_detail')
         self.checkDao = CheckDao()
         # 用于缓存css
         self.css = {
@@ -40,77 +40,87 @@ class TXDetailSpider(scrapy.Spider):
         pass
 
     def start_requests(self):
-            # 检测网络
-            while not NetworkUtil.checkNetWork():
-                # 20s检测一次
-                TimerUtil.sleep(20)
-                self.logDao.warn(u'检测网络不可行')
+        # 检测网络
+        while not NetworkUtil.checkNetWork():
+            # 20s检测一次
+            TimerUtil.sleep(20)
+            self.logDao.warn(u'检测网络不可行')
 
-            # 检测服务器
-            while not NetworkUtil.checkService():
-                # 20s检测一次
-                TimerUtil.sleep(20)
-                self.logDao.warn(u'检测服务器不可行')
-            src_channel = u'凤凰财经'
+        # 检测服务器
+        while not NetworkUtil.checkService():
+            # 20s检测一次
+            TimerUtil.sleep(20)
+            self.logDao.warn(u'检测服务器不可行')
+        src_channel = u'凤凰财经'
 
-            sub_channel = u'游戏-电子竞技'
-            url = 'http://games.ifeng.com/listpage/17886/1/list.shtml'
-            newUrl = url
-            self.logDao.warn(u'进行抓取列表:' + newUrl)
-            yield scrapy.Request(url=newUrl,
-                                 meta={'request_type': 'fenghuang_page_list',
-                                       'url': newUrl,
-                                       'src_channel': src_channel,
-                                       'sub_channel': sub_channel
-                                       },
-                                 callback=self.parseArticleList3, dont_filter=True)
+        sub_channel = u'游戏-电子竞技'
+        url = 'http://games.ifeng.com/listpage/17886/1/list.shtml'
+        styleUrlDefault = ['http://p2.ifengimg.com/a/2016/0523/esports.css',
+                           'http://y1.ifengimg.com/package/t_20130820__15953/css/pl_detail_v8.css']
+        newUrl = url
+        self.logDao.warn(u'进行抓取列表:' + newUrl)
+        yield scrapy.Request(url=newUrl,
+                             meta={'request_type': 'fenghuang_page_list',
+                                   'url': newUrl,
+                                   'src_channel': src_channel,
+                                   'sub_channel': sub_channel,
+                                   'styleUrlDefault': styleUrlDefault
+                                   },
+                             callback=self.parseArticleList3, dont_filter=True)
 
-            sub_channel = u'游戏-产品资讯'
-            url = 'http://games.ifeng.com/listpage/27456/1/list.shtml'
-            newUrl = url
-            self.logDao.warn(u'进行抓取列表:' + newUrl)
-            yield scrapy.Request(url=newUrl,
-                                 meta={'request_type': 'fenghuang_page_list',
-                                       'url': newUrl,
-                                       'src_channel': src_channel,
-                                       'sub_channel': sub_channel
-                                       },
-                                 callback=self.parseArticleList, dont_filter=True)
+        sub_channel = u'游戏-产品资讯'
+        url = 'http://games.ifeng.com/listpage/27456/1/list.shtml'
+        styleUrlDefault = ['http://p0.ifengimg.com/fe/responsiveDetail/styles/pc_c38f5a0e.css']
+        newUrl = url
+        self.logDao.warn(u'进行抓取列表:' + newUrl)
+        yield scrapy.Request(url=newUrl,
+                             meta={'request_type': 'fenghuang_page_list',
+                                   'url': newUrl,
+                                   'src_channel': src_channel,
+                                   'sub_channel': sub_channel,
+                                   'styleUrlDefault': styleUrlDefault
+                                   },
+                             callback=self.parseArticleList, dont_filter=True)
 
-            sub_channel = u'游戏-热点资讯'
-            url = 'http://games.ifeng.com/listpage/27455/1/list.shtml'
-            newUrl = url
-            self.logDao.warn(u'进行抓取列表:' + newUrl)
-            yield scrapy.Request(url=newUrl,
-                                 meta={'request_type': 'fenghuang_page_list',
-                                       'url': newUrl,
-                                       'src_channel': src_channel,
-                                       'sub_channel': sub_channel
-                                       },
-                                 callback=self.parseArticleList, dont_filter=True)
+        sub_channel = u'游戏-热点资讯'
+        url = 'http://games.ifeng.com/listpage/27455/1/list.shtml'
+        styleUrlDefault = ['http://p0.ifengimg.com/fe/responsiveDetail/styles/pc_c38f5a0e.css']
+        newUrl = url
+        self.logDao.warn(u'进行抓取列表:' + newUrl)
+        yield scrapy.Request(url=newUrl,
+                             meta={'request_type': 'fenghuang_page_list',
+                                   'url': newUrl,
+                                   'src_channel': src_channel,
+                                   'sub_channel': sub_channel,
+                                   'styleUrlDefault': styleUrlDefault
+                                   },
+                             callback=self.parseArticleList, dont_filter=True)
 
-            sub_channel = u'科技-资讯'
-            url = 'http://tech.ifeng.com/listpage/800/0/1/rtlist.shtml'
-            newUrl = url
-            self.logDao.warn(u'进行抓取列表:' + newUrl)
-            yield scrapy.Request(url=newUrl,
-                                 meta={'request_type': 'fenghuang_page_list',
-                                       'url': newUrl,
-                                       'src_channel': src_channel,
-                                       'sub_channel': sub_channel
-                                       },
-                                 callback=self.parseArticleList2, dont_filter=True)
+        sub_channel = u'科技-资讯'
+        url = 'http://tech.ifeng.com/listpage/800/0/1/rtlist.shtml'
+        styleUrlDefault = ['http://p0.ifengimg.com/fe/responsiveDetail/styles/pc_c38f5a0e.css']
+        newUrl = url
+        self.logDao.warn(u'进行抓取列表:' + newUrl)
+        yield scrapy.Request(url=newUrl,
+                             meta={'request_type': 'fenghuang_page_list',
+                                   'url': newUrl,
+                                   'src_channel': src_channel,
+                                   'sub_channel': sub_channel,
+                                   'styleUrlDefault': styleUrlDefault
+                                   },
+                             callback=self.parseArticleList2, dont_filter=True)
 
     def parseArticleList2(self, response):
         body = EncodeUtil.toUnicode(response.body)
         if False:
             self.logDao.info(u'访问过多被禁止')
         else:
+            styleUrlDefault = response.meta['styleUrlDefault']
             self.logDao.info(u'开始解析列表')
             selector = Selector(text=body)
             articles = selector.xpath('//div[@class="zheng_list pl10 box"]')
             for article in articles:
-                source_url = article.xpath('./h1/a/@href').extract_first('')
+                source_url = article.xpath('./h1/a/@href').extract_first('').lstrip('%20').lstrip(' ')
                 title = article.xpath('./h1/a/text()').extract_first('')
                 # post_date = article.xpath('./div[@class="Function"]/span/text()').extract_first('')
                 # try:
@@ -127,7 +137,9 @@ class TXDetailSpider(scrapy.Spider):
 
                 yield scrapy.Request(url=source_url,
                                      meta={'request_type': 'fenghuang_detail', "title": title,
-                                           "source_url": source_url},
+                                           "source_url": source_url,
+                                           'styleUrlDefault': styleUrlDefault
+                                           },
                                      callback=self.parseArticle)
 
     def parseArticleList3(self, response):
@@ -135,12 +147,13 @@ class TXDetailSpider(scrapy.Spider):
         if False:
             self.logDao.info(u'访问过多被禁止')
         else:
+            styleUrlDefault = response.meta['styleUrlDefault']
             self.logDao.info(u'开始解析列表')
             selector = Selector(text=body)
-            articles = selector.xpath('//div[boolean(contains(@class, "box_list")]')
+            articles = selector.xpath('//div[boolean(contains(@class, "box_list"))]')
             for article in articles:
-                source_url = article.xpath('./h2/a/@href').extract_first('')
-                title = article.xpath('./h1/a/text()').extract_first('')
+                source_url = article.xpath('./h2/a/@href').extract_first('').lstrip('%20').lstrip(' ')
+                title = article.xpath('./h2/a/text()').extract_first('')
                 if not source_url:
                     continue
                 # 如果存在则不抓取
@@ -151,7 +164,9 @@ class TXDetailSpider(scrapy.Spider):
 
                 yield scrapy.Request(url=source_url,
                                      meta={'request_type': 'fenghuang_detail', "title": title,
-                                           "source_url": source_url},
+                                           "source_url": source_url,
+                                           'styleUrlDefault': styleUrlDefault
+                                           },
                                      callback=self.parseArticle)
 
     # TODO...还没有遇到被禁止的情况
@@ -160,11 +175,12 @@ class TXDetailSpider(scrapy.Spider):
         if False:
             self.logDao.info(u'访问过多被禁止')
         else:
+            styleUrlDefault = response.meta['styleUrlDefault']
             self.logDao.info(u'开始解析列表')
             selector = Selector(text=body)
             articles = selector.xpath('//div[@class="newsList"]//li')
             for article in articles:
-                source_url = article.xpath('./a/@href').extract_first('')
+                source_url = article.xpath('./a/@href').extract_first('').lstrip('%20').lstrip(' ')
                 title = article.xpath('./a/text()').extract_first('')
                 # 如果存在则不抓取
                 if self.checkDao.checkExist(source_url):
@@ -174,7 +190,8 @@ class TXDetailSpider(scrapy.Spider):
 
                 yield scrapy.Request(url=source_url,
                                      meta={'request_type': 'fenghuang_detail', "title": title,
-                                           "source_url": source_url},
+                                           "source_url": source_url,
+                                           'styleUrlDefault': styleUrlDefault},
                                      callback=self.parseArticle)
 
     def parseArticle(self, response):
@@ -182,6 +199,7 @@ class TXDetailSpider(scrapy.Spider):
         if False:
             self.logDao.info(u'访问过多被禁止')
         else:
+            styleUrlDefault = response.meta['styleUrlDefault']
             title = response.meta['title']
             source_url = response.meta['source_url']
             self.logDao.info(u'开始解析文章:' + title + ':' + source_url)
@@ -190,6 +208,7 @@ class TXDetailSpider(scrapy.Spider):
 
             # 得到样式
             styleUrls = selector.xpath('//link[@rel="stylesheet"]/@href').extract()
+            styleUrls = styleUrls + styleUrlDefault
             styleList = []
             for styleUrl in styleUrls:
                 # 得到hash作为key
@@ -202,12 +221,14 @@ class TXDetailSpider(scrapy.Spider):
 
             # 替换样式里面的链接
             styles = CssUtil.clearUrl(styles)
+            styles = CssUtil.clearBackgroundColor(styles, ['#eaeaea'])
 
             tags = selector.xpath('//meta[@name="keywords"]/@content').extract_first('')
 
             category = selector.xpath('//meta[boolean(contains(@name, "og:category"))]/@content').extract_first('')
 
-            src_ref = selector.xpath('//span[@class="ss03"]//text() | //div[@id="artical_sth"]/p/text()').extract_first('')
+            src_ref = selector.xpath('//span[@class="ss03"]//text() | //div[@id="artical_sth"]/p/text()').extract_first(
+                '')
 
             post_date = selector.xpath('//meta[@name="og:time"]/@content').extract_first('')
             post_date = post_date.replace(u'年', '-').replace(u'月', '-').replace(u'日', u' ').replace(u'\xa0', u' ')
@@ -230,7 +251,8 @@ class TXDetailSpider(scrapy.Spider):
                 return
             # 去除内部不需要的标签
             # 完整案例：content_html.xpath('*[not(boolean(@class="entHdPic" or @class="ep-source cDGray")) and not(name(.)="script")]').extract()
-            content_items = content_html.xpath('*[not(name(.)="script") and not(name(.)="style")  and not(name(.)="iframe")]')
+            content_items = content_html.xpath(
+                '*[not(name(.)="script") and not(name(.)="style")  and not(name(.)="iframe")]')
             if not len(content_items):
                 self.logDao.info(u'不存在内容：' + source_url)
                 return

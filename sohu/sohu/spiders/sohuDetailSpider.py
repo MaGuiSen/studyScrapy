@@ -182,7 +182,7 @@ class TXDetailSpider(scrapy.Spider):
                     image_urls.append({
                         'url': image_url,
                     })
-                    content_html = content_html.replace('&amp;', '&').replace(image_url_base, image_url)
+                    content_html = content_html.replace(image_url_base, image_url)
 
             urlHash = EncryptUtil.md5(source_url.encode('utf8'))
             self.saveFile(urlHash, body)

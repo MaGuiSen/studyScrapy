@@ -24,7 +24,7 @@ class CheckDao(object):
         cursor = self.connector.cursor()
         if not cursor:
             return True
-        sql_query = 'select id from demoName_detail where hash_code=%s'
+        sql_query = 'select id from fenghuang_detail where hash_code=%s'
         cursor.execute(sql_query, (hash_code,))
         results = cursor.fetchall()
         cursor.close()
@@ -48,7 +48,7 @@ class CheckDao(object):
         cursor = self.connector.cursor()
         if not cursor:
             return []
-        sql_query = 'select id,content_html from demoName_detail group by id limit %s, %s'
+        sql_query = 'select id,content_html from fenghuang_detail group by id limit %s, %s'
         cursor.execute(sql_query, ((pageIndex - 1) * 15, 15))
         results = cursor.fetchall()
         cursor.close()
@@ -62,7 +62,7 @@ class CheckDao(object):
         cursor = self.connector.cursor()
         if not cursor:
             return []
-        sql_query = 'select id,post_date from demoName_detail group by id limit %s, %s'
+        sql_query = 'select id,post_date from fenghuang_detail group by id limit %s, %s'
         cursor.execute(sql_query, ((pageIndex - 1) * 15, 15))
         results = cursor.fetchall()
         cursor.close()
@@ -72,7 +72,7 @@ class CheckDao(object):
         cursor = self.connector.cursor()
         if not cursor:
             return
-        sql_query = "update demoName_detail set post_date=%s where id=%s"
+        sql_query = "update fenghuang_detail set post_date=%s where id=%s"
         cursor.execute(sql_query, (post_date, id))
         cursor.close()
         self.connector.commit()
@@ -81,7 +81,7 @@ class CheckDao(object):
         cursor = self.connector.cursor()
         if not cursor:
             return
-        sql_query = "update demoName_detail set styles=%s where id=%s"
+        sql_query = "update fenghuang_detail set styles=%s where id=%s"
         cursor.execute(sql_query, (styles, id))
         cursor.close()
         self.connector.commit()
@@ -90,7 +90,7 @@ class CheckDao(object):
         cursor = self.connector.cursor()
         if not cursor:
             return
-        sql_query = "update demoName_detail set content_html=%s where id=%s"
+        sql_query = "update fenghuang_detail set content_html=%s where id=%s"
         cursor.execute(sql_query, (content_html, id))
         cursor.close()
         self.connector.commit()

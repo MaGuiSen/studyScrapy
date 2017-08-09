@@ -52,21 +52,32 @@ class WYDetailSpider(scrapy.Spider):
                 TimerUtil.sleep(20)
                 self.logDao.warn(u'检测服务器不可行')
 
+            src_channel = '网易科技'
             # 进行页面访问
             newUrl = 'http://tech.163.com/special/00094IHV/news_json.js?' + str(random.uniform(0, 1))
             self.logDao.warn(u'进行抓取列表:' + newUrl)
             yield scrapy.Request(url=newUrl,
-                                 meta={'request_type': 'wangyi_page_list', 'url': newUrl},
+                                 meta={'request_type': 'wangyi_page_list', 'url': newUrl,
+                                       'src_channel': src_channel},
+                                 callback=self.parseArticleList, dont_filter=True)
+
+            src_channel = '网易财经'
+            # 进行页面访问
+            newUrl = 'http://money.163.com/special/00251G8F/news_json.js?' + str(random.uniform(0, 1))
+            self.logDao.warn(u'进行抓取列表:' + newUrl)
+            yield scrapy.Request(url=newUrl,
+                                 meta={'request_type': 'wangyi_page_list', 'url': newUrl,
+                                       'src_channel': src_channel},
                                  callback=self.parseArticleList, dont_filter=True)
 
     # TODO...还没有遇到被禁止的情况
     def parseArticleList(self, response):
         url = response.meta['url']
         body = EncodeUtil.toUnicode(response.body)
-
         if False:
             self.logDao.info(u'访问过多被禁止')
         else:
+            src_channel = response.meta['src_channel']
             self.logDao.info(u'开始解析列表')
             body = body.lstrip('var data=').rstrip(';')
             # 格式化
@@ -90,7 +101,8 @@ class WYDetailSpider(scrapy.Spider):
                     self.logDao.info(u'抓取文章' + title + ':' + post_date + ':' + source_url)
                     yield scrapy.Request(url=source_url,
                                          meta={'request_type': 'wangyi_detail', "title": title, 'category':category,'post_date': post_date,
-                                               "source_url": source_url},
+                                               "source_url": source_url,
+                                               'src_channel': src_channel},
                                          callback=self.parseArticle)
 
     def parseArticle(self, response):
@@ -99,6 +111,7 @@ class WYDetailSpider(scrapy.Spider):
             self.logDao.info(u'访问过多被禁止')
         else:
             category = response.meta['category']
+            src_channel = response.meta['src_channel']
             title = response.meta['title']
             post_date = response.meta['post_date']
             source_url = response.meta['source_url']
@@ -190,7 +203,7 @@ class WYDetailSpider(scrapy.Spider):
             contentItem['info_type'] = 1
             contentItem['src_source_id'] = 4
             # contentItem['src_account_id'] = 0
-            contentItem['src_channel'] = '网易科技'
+            contentItem['src_channel'] = src_channel
             contentItem['src_ref'] = src_ref
             return contentItem
 

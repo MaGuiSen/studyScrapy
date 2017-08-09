@@ -52,11 +52,51 @@ class TXDetailSpider(scrapy.Spider):
                 self.logDao.warn(u'检测服务器不可行')
 
             # 进行页面访问
+            src_channel = '腾讯科技'
             newUrl = 'http://tech.qq.com/l/scroll.htm'
             self.logDao.warn(u'进行抓取列表:' + newUrl)
             yield scrapy.Request(url=newUrl,
-                                 meta={'request_type': 'tengxun_page_list', 'url': newUrl},
+                                 meta={'request_type': 'tengxun_page_list',
+                                       'src_channel': src_channel,
+                                       'url': newUrl},
                                  callback=self.parseArticleList, dont_filter=True)
+
+            # 进行页面访问
+            src_channel = '腾讯财经'
+            newUrl = 'http://finance.qq.com/'
+            self.logDao.warn(u'进行抓取列表:' + newUrl)
+            yield scrapy.Request(url=newUrl,
+                                 meta={'request_type': 'tengxun_page_list',
+                                       'src_channel': src_channel,
+                                       'url': newUrl},
+                                 callback=self.parseArticleList2, dont_filter=True)
+
+    # TODO...还没有遇到被禁止的情况
+    def parseArticleList2(self, response):
+        body = EncodeUtil.toUnicode(response.body)
+        if False:
+            self.logDao.info(u'访问过多被禁止')
+        else:
+            src_channel = response.meta['src_channel']
+            self.logDao.info(u'开始解析列表')
+            selector = Selector(text=body)
+            articles = selector.xpath('//div[@class="list yaowen"]//li[boolean(contains(@class, "item"))]/a[1]')
+            for article in articles:
+                source_url = article.xpath('./@href').extract_first('')
+                title = article.xpath('./text()').extract_first('')
+                if not source_url:
+                    continue
+                # 如果存在则不抓取
+                if self.checkDao.checkExist(source_url):
+                    self.logDao.info(u'文章已经存在' + title + ':' + source_url)
+                    continue
+                self.logDao.info(u'抓取文章' + title + ':' + source_url)
+
+                yield scrapy.Request(url=source_url,
+                                     meta={'request_type': 'tengxun_detail', "title": title, 'post_date': '',
+                                           'src_channel': src_channel,
+                                           "source_url": source_url},
+                                     callback=self.parseArticle)
 
     # TODO...还没有遇到被禁止的情况
     def parseArticleList(self, response):
@@ -64,6 +104,7 @@ class TXDetailSpider(scrapy.Spider):
         if False:
             self.logDao.info(u'访问过多被禁止')
         else:
+            src_channel = response.meta['src_channel']
             self.logDao.info(u'开始解析列表')
             selector = Selector(text=body)
             articles = selector.xpath('//div[@class="mod newslist"]//li')
@@ -82,6 +123,7 @@ class TXDetailSpider(scrapy.Spider):
                 # http://tech.qq.com/a/20170721/025237.htm
                 yield scrapy.Request(url=source_url,
                                      meta={'request_type': 'tengxun_detail', "title": title, 'post_date': post_date,
+                                           'src_channel': src_channel,
                                            "source_url": source_url},
                                      callback=self.parseArticle)
 
@@ -91,6 +133,7 @@ class TXDetailSpider(scrapy.Spider):
             self.logDao.info(u'访问过多被禁止')
         else:
             title = response.meta['title']
+            src_channel = response.meta['src_channel']
             post_date = response.meta['post_date']
             source_url = response.meta['source_url']
             self.logDao.info(u'开始解析文章:' + title + ':' + post_date + ':' + source_url)
@@ -101,6 +144,8 @@ class TXDetailSpider(scrapy.Spider):
             styleUrls = selector.xpath('//link[@rel="stylesheet"]/@href').extract()
             styleList = []
             for styleUrl in styleUrls:
+                if styleUrl.startswith('//'):
+                    styleUrl = 'http:' + styleUrl
                 # 得到hash作为key
                 styleUrlHash = EncryptUtil.md5(styleUrl)
                 if not self.css.get(styleUrlHash):
@@ -114,11 +159,11 @@ class TXDetailSpider(scrapy.Spider):
 
             category = selector.xpath('//*[@class="a_catalog"]/a/text()|//*[@class="a_catalog"]/text()').extract_first('')
 
-            post_user = selector.xpath('//*[@class="a_author"]/text() | //*[@class="where"]/text()| //*[@class="where"]/a/text()').extract_first('')
+            post_user = selector.xpath('//*[@class="a_author"]/text() | //*[@class="auth color-a-3"]//text() | //*[@class="where"]/text()| //*[@class="where"]/a/text()').extract_first('')
 
-            src_ref = selector.xpath('//*[@class="a_source"]/text() | //*[@class="a_source"]/a/text()').extract_first('')
+            src_ref = selector.xpath('//*[@class="a_source"]/text() | //*[@class="where color-a-1"]//text() | //*[@class="a_source"]/a/text()').extract_first('')
 
-            a_time = selector.xpath('//*[@class="a_time"]/text() | //*[@class="pubTime"]/text()').extract_first('')
+            a_time = selector.xpath('//*[@class="a_time"]/text() | //*[boolean(contains(@class, "pubTime"))]/text()').extract_first('')
 
             if a_time:
                 post_date = a_time
@@ -167,12 +212,17 @@ class TXDetailSpider(scrapy.Spider):
 
             for img in imgs:
                 # 图片可能放在src 或者data-src
-                image_url = img.xpath('@src').extract_first()
+                image_url_base = img.xpath('@src').extract_first('')
+                if image_url_base.startswith('//'):
+                    image_url = 'http:' + image_url_base
+                else:
+                    image_url = image_url_base
                 if image_url and image_url.startswith('http'):
                     self.logDao.info(u'得到图片：' + image_url)
                     image_urls.append({
                         'url': image_url,
                     })
+                    content_html = content_html.replace(image_url_base, image_url)
 
             urlHash = EncryptUtil.md5(source_url.encode('utf8'))
             self.saveFile(urlHash, body)
@@ -203,7 +253,7 @@ class TXDetailSpider(scrapy.Spider):
             contentItem['info_type'] = 1
             contentItem['src_source_id'] = 3
             # contentItem['src_account_id'] = 0
-            contentItem['src_channel'] = '腾讯科技'
+            contentItem['src_channel'] = src_channel
             contentItem['src_ref'] = src_ref
             return contentItem
 
