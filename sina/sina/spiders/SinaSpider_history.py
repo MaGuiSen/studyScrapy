@@ -141,6 +141,8 @@ class SinaSpider(scrapy.Spider):
             styleList = []
             for styleUrl in styleUrls:
                 # 得到hash作为key
+                if styleUrl.startswith('//'):
+                    styleUrl = 'http:' + styleUrl
                 styleUrlHash = EncryptUtil.md5(styleUrl)
                 if not self.css.get(styleUrlHash):
                     # 不存在则去下载 并保存
@@ -207,13 +209,18 @@ class SinaSpider(scrapy.Spider):
             imgs = selector.xpath('descendant::img')
 
             for img in imgs:
-                # 图片可能放在src
-                image_url = img.xpath('@src').extract_first()
+                # 图片可能放在src 或者data-src
+                image_url_base = img.xpath('@src').extract_first('')
+                if image_url_base.startswith('//'):
+                    image_url = 'http:' + image_url_base
+                else:
+                    image_url = image_url_base
                 if image_url and image_url.startswith('http'):
                     self.logDao.info(u'得到图片：' + image_url)
                     image_urls.append({
                         'url': image_url,
                     })
+                    content_html = content_html.replace(image_url_base, image_url)
 
             urlHash = EncryptUtil.md5(source_url.encode('utf8'))
             self.saveFile(urlHash, body)
