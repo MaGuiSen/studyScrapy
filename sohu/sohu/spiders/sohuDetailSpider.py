@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import json
 import time
 
 import demjson
@@ -34,33 +35,42 @@ class TXDetailSpider(scrapy.Spider):
             'hash': 'style'
         }
         self.dataMonitor = DataMonitorDao()
-        self.logger.info(u'重走init')
+        self.isRunningStop = False
 
     def close(spider, reason):
+        if not spider.isRunningStop:
+            # 如果启动爬虫时候，还有未完成的抓取，此时不应该设置状态为停止，反之
+            spider.saveStatus('stop')
         # spider.dataMonitor.updateTotal('sohu_total')
         pass
 
     def start_requests(self):
-            # 检测网络
-            while not NetworkUtil.checkNetWork():
-                # 20s检测一次
-                TimerUtil.sleep(20)
-                self.logDao.warn(u'检测网络不可行')
+        # 如果正在爬，就不请求
+        status = self.getStatus()
+        if status == 'running':
+            self.isRunningStop = True
+            return
+        self.saveStatus('running')
+        # 检测网络
+        while not NetworkUtil.checkNetWork():
+            # 20s检测一次
+            TimerUtil.sleep(20)
+            self.logDao.warn(u'检测网络不可行')
 
-            # 检测服务器
-            while not NetworkUtil.checkService():
-                # 20s检测一次
-                TimerUtil.sleep(20)
-                self.logDao.warn(u'检测服务器不可行')
+        # 检测服务器
+        while not NetworkUtil.checkService():
+            # 20s检测一次
+            TimerUtil.sleep(20)
+            self.logDao.warn(u'检测服务器不可行')
 
-            for page in range(1, 20):
-                # 进行页面访问
-                url = 'http://v2.sohu.com/public-api/feed?scene=CHANNEL&sceneId=30&size=20&callback=&_=1502075449669&page='
-                newUrl = url + str(page)
-                self.logDao.warn(u'进行抓取列表:' + newUrl)
-                yield scrapy.Request(url=newUrl,
-                                     meta={'request_type': 'sohu_page_list', 'url': newUrl},
-                                    callback=self.parseArticleList, dont_filter=True)
+        for page in range(1, 4):
+            # 进行页面访问
+            url = 'http://v2.sohu.com/public-api/feed?scene=CHANNEL&sceneId=30&size=20&callback=&_=1502075449669&page='
+            newUrl = url + str(page)
+            self.logDao.warn(u'进行抓取列表:' + newUrl)
+            yield scrapy.Request(url=newUrl,
+                                 meta={'request_type': 'sohu_page_list', 'url': newUrl},
+                                callback=self.parseArticleList, dont_filter=True)
 
     # TODO...还没有遇到被禁止的情况
     def parseArticleList(self, response):
@@ -222,3 +232,23 @@ class TXDetailSpider(scrapy.Spider):
         with open(filename, 'wb') as f:
             f.write(content.encode("utf8"))
         self.log('Saved file %s' % filename)
+
+    def getStatus(self):
+        loadF = None
+        try:
+            with open("catchStatus.json", 'r') as loadF:
+                aa = json.load(loadF)
+                return aa.get('status')
+        finally:
+            if loadF:
+                loadF.close()
+
+    def saveStatus(self, status):
+        loadF = None
+        try:
+            with open("catchStatus.json", "w") as loadF:
+                json.dump({'status': status}, loadF)
+        finally:
+            if loadF:
+                loadF.close()
+

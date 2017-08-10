@@ -32,7 +32,6 @@ class WXDetailSpider(scrapy.Spider):
         self.checkDao = CheckDao()
         self.dataMonitor = DataMonitorDao()
         self.wxSources = []
-        self.logger.info(u'重走init')
         self.brokenAccounts = []  # 当前被禁止了的账号，下次抓取优先抓取
 
     def close(spider, reason):

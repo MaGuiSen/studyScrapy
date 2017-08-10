@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import json
 import time
 
 import scrapy
@@ -33,13 +34,23 @@ class TXDetailSpider(scrapy.Spider):
             'hash': 'style'
         }
         self.dataMonitor = DataMonitorDao()
-        self.logger.info(u'重走init')
+        self.isRunningStop = False
 
     def close(spider, reason):
+        if not spider.isRunningStop:
+            # 如果启动爬虫时候，还有未完成的抓取，此时不应该设置状态为停止，反之
+            spider.saveStatus('stop')
         # spider.dataMonitor.updateTotal('fenghuang_total')
         pass
 
     def start_requests(self):
+        # 如果正在爬，就不请求
+        status = self.getStatus()
+        if status == 'running':
+            self.isRunningStop = True
+            return
+        self.saveStatus('running')
+
         # 检测网络
         while not NetworkUtil.checkNetWork():
             # 20s检测一次
@@ -53,7 +64,7 @@ class TXDetailSpider(scrapy.Spider):
             self.logDao.warn(u'检测服务器不可行')
         src_channel = u'凤凰财经'
 
-        sub_channel = u'游戏-电子竞技'
+        sub_channel = u'电子竞技'
         url = 'http://games.ifeng.com/listpage/17886/1/list.shtml'
         styleUrlDefault = ['http://p2.ifengimg.com/a/2016/0523/esports.css',
                            'http://y1.ifengimg.com/package/t_20130820__15953/css/pl_detail_v8.css']
@@ -68,7 +79,7 @@ class TXDetailSpider(scrapy.Spider):
                                    },
                              callback=self.parseArticleList3, dont_filter=True)
 
-        sub_channel = u'游戏-产品资讯'
+        sub_channel = u'产品资讯'
         url = 'http://games.ifeng.com/listpage/27456/1/list.shtml'
         styleUrlDefault = ['http://p0.ifengimg.com/fe/responsiveDetail/styles/pc_c38f5a0e.css']
         newUrl = url
@@ -82,7 +93,7 @@ class TXDetailSpider(scrapy.Spider):
                                    },
                              callback=self.parseArticleList, dont_filter=True)
 
-        sub_channel = u'游戏-热点资讯'
+        sub_channel = u'热点资讯'
         url = 'http://games.ifeng.com/listpage/27455/1/list.shtml'
         styleUrlDefault = ['http://p0.ifengimg.com/fe/responsiveDetail/styles/pc_c38f5a0e.css']
         newUrl = url
@@ -96,7 +107,7 @@ class TXDetailSpider(scrapy.Spider):
                                    },
                              callback=self.parseArticleList, dont_filter=True)
 
-        sub_channel = u'科技-资讯'
+        sub_channel = u'资讯'
         url = 'http://tech.ifeng.com/listpage/800/0/1/rtlist.shtml'
         styleUrlDefault = ['http://p0.ifengimg.com/fe/responsiveDetail/styles/pc_c38f5a0e.css']
         newUrl = url
@@ -115,6 +126,8 @@ class TXDetailSpider(scrapy.Spider):
         if False:
             self.logDao.info(u'访问过多被禁止')
         else:
+            src_channel = response.meta['src_channel']
+            sub_channel = response.meta['sub_channel']
             styleUrlDefault = response.meta['styleUrlDefault']
             self.logDao.info(u'开始解析列表')
             selector = Selector(text=body)
@@ -133,6 +146,8 @@ class TXDetailSpider(scrapy.Spider):
                 yield scrapy.Request(url=source_url,
                                      meta={'request_type': 'fenghuang_detail', "title": title,
                                            "source_url": source_url,
+                                           'src_channel': src_channel,
+                                           'sub_channel': sub_channel,
                                            'styleUrlDefault': styleUrlDefault
                                            },
                                      callback=self.parseArticle)
@@ -142,6 +157,8 @@ class TXDetailSpider(scrapy.Spider):
         if False:
             self.logDao.info(u'访问过多被禁止')
         else:
+            src_channel = response.meta['src_channel']
+            sub_channel = response.meta['sub_channel']
             styleUrlDefault = response.meta['styleUrlDefault']
             self.logDao.info(u'开始解析列表')
             selector = Selector(text=body)
@@ -160,6 +177,8 @@ class TXDetailSpider(scrapy.Spider):
                 yield scrapy.Request(url=source_url,
                                      meta={'request_type': 'fenghuang_detail', "title": title,
                                            "source_url": source_url,
+                                           'src_channel': src_channel,
+                                           'sub_channel': sub_channel,
                                            'styleUrlDefault': styleUrlDefault
                                            },
                                      callback=self.parseArticle)
@@ -170,6 +189,8 @@ class TXDetailSpider(scrapy.Spider):
         if False:
             self.logDao.info(u'访问过多被禁止')
         else:
+            src_channel = response.meta['src_channel']
+            sub_channel = response.meta['sub_channel']
             styleUrlDefault = response.meta['styleUrlDefault']
             self.logDao.info(u'开始解析列表')
             selector = Selector(text=body)
@@ -186,6 +207,8 @@ class TXDetailSpider(scrapy.Spider):
                 yield scrapy.Request(url=source_url,
                                      meta={'request_type': 'fenghuang_detail', "title": title,
                                            "source_url": source_url,
+                                           'src_channel': src_channel,
+                                           'sub_channel': sub_channel,
                                            'styleUrlDefault': styleUrlDefault},
                                      callback=self.parseArticle)
 
@@ -194,6 +217,8 @@ class TXDetailSpider(scrapy.Spider):
         if False:
             self.logDao.info(u'访问过多被禁止')
         else:
+            src_channel = response.meta['src_channel']
+            sub_channel = response.meta['sub_channel']
             styleUrlDefault = response.meta['styleUrlDefault']
             title = response.meta['title']
             source_url = response.meta['source_url']
@@ -222,8 +247,10 @@ class TXDetailSpider(scrapy.Spider):
 
             category = selector.xpath('//meta[boolean(contains(@name, "og:category"))]/@content').extract_first('')
 
-            src_ref = selector.xpath('//span[@class="ss03"]//text() | //div[@id="artical_sth"]/p/text()').extract_first(
-                '')
+            src_ref = selector.xpath('//span[@class="ss03"]//text()').extract_first('')
+            if not src_ref.replace('\n', '').replace(' ', ''):
+                src_ref = selector.xpath('//div[@id="artical_sth"]/p/text()').extract()
+                src_ref = ''.join(src_ref).replace('\n', '').replace(u'来源：', '').replace(' ','')
 
             post_date = selector.xpath('//meta[@name="og:time"]/@content').extract_first('')
             post_date = post_date.replace(u'年', '-').replace(u'月', '-').replace(u'日', u' ').replace(u'\xa0', u' ')
@@ -304,7 +331,7 @@ class TXDetailSpider(scrapy.Spider):
             contentItem['title'] = title
             contentItem['source_url'] = source_url
             contentItem['post_date'] = post_date
-            contentItem['sub_channel'] = category
+            contentItem['sub_channel'] = category + '-' + sub_channel
             contentItem['post_user'] = ''
             contentItem['tags'] = tags
             contentItem['styles'] = styles
@@ -313,7 +340,7 @@ class TXDetailSpider(scrapy.Spider):
             contentItem['info_type'] = 1
             contentItem['src_source_id'] = 8
             # contentItem['src_account_id'] = 0
-            contentItem['src_channel'] = '凤凰财经'
+            contentItem['src_channel'] = src_channel
             contentItem['src_ref'] = src_ref
             return contentItem
 
@@ -322,3 +349,22 @@ class TXDetailSpider(scrapy.Spider):
         with open(filename, 'wb') as f:
             f.write(content.encode("utf8"))
         self.log('Saved file %s' % filename)
+
+    def getStatus(self):
+        loadF = None
+        try:
+            with open("catchStatus.json", 'r') as loadF:
+                aa = json.load(loadF)
+                return aa.get('status')
+        finally:
+            if loadF:
+                loadF.close()
+
+    def saveStatus(self, status):
+        loadF = None
+        try:
+            with open("catchStatus.json", "w") as loadF:
+                json.dump({'status': status}, loadF)
+        finally:
+            if loadF:
+                loadF.close()

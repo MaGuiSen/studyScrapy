@@ -33,7 +33,6 @@ class TXDetailSpider(scrapy.Spider):
             'hash': 'style'
         }
         self.dataMonitor = DataMonitorDao()
-        self.logger.info(u'重走init')
 
     def close(spider, reason):
         spider.dataMonitor.updateTotal('tengxun_total')

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import json
 import time
 
 import demjson
@@ -34,13 +35,23 @@ class TXDetailSpider(scrapy.Spider):
             'hash': 'style'
         }
         self.dataMonitor = DataMonitorDao()
-        self.logger.info(u'重走init')
+        self.isRunningStop = False
 
     def close(spider, reason):
+        if not spider.isRunningStop:
+            # 如果启动爬虫时候，还有未完成的抓取，此时不应该设置状态为停止，反之
+            spider.saveStatus('stop')
         # spider.dataMonitor.updateTotal('jiemian_total')
         pass
 
     def start_requests(self):
+        # 如果正在爬，就不请求
+        status = self.getStatus()
+        if status == 'running':
+            self.isRunningStop = True
+            return
+        self.saveStatus('running')
+
         # 检测网络
         while not NetworkUtil.checkNetWork():
             # 20s检测一次
@@ -279,3 +290,22 @@ class TXDetailSpider(scrapy.Spider):
         with open(filename, 'wb') as f:
             f.write(content.encode("utf8"))
         self.log('Saved file %s' % filename)
+
+    def getStatus(self):
+        loadF = None
+        try:
+            with open("catchStatus.json", 'r') as loadF:
+                aa = json.load(loadF)
+                return aa.get('status')
+        finally:
+            if loadF:
+                loadF.close()
+
+    def saveStatus(self, status):
+        loadF = None
+        try:
+            with open("catchStatus.json", "w") as loadF:
+                json.dump({'status': status}, loadF)
+        finally:
+            if loadF:
+                loadF.close()
