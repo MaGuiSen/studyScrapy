@@ -9,7 +9,7 @@ class CheckDao(object):
 
 
     def __init__(self):
-        self.connector = Connector(isLocalDB=True)
+        self.connector = Connector(isLocalDB=False)
         self.hashList = []  # 代表此次已经存在的hash,防止同一时间得到相同文章进行抓取
 
     def resetHashList(self):

@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-import time
-
 import scrapy
 from scrapy import Selector
 
@@ -16,13 +14,15 @@ from libMe.db.DataMonitorDao import DataMonitorDao
 
 
 # 60s/120s/300s 刷新一次
-class TXDetailSpider(scrapy.Spider):
+class DetailSpider(scrapy.Spider):
     name = 'diyicaijing_detail'
-    download_delay = 2.5  # 基础间隔 0.5*download_delay --- 1.5*download_delays之间的随机数
-    handle_httpstatus_list = [301, 302, 204, 206, 403, 404, 500]  # 可以处理重定向及其他错误码导致的 页面无法获取解析的问题
+    # 基础间隔 0.5*download_delay --- 1.5*download_delays之间的随机数
+    download_delay = 2.5
+    # 可以处理重定向及其他错误码导致的 页面无法获取解析的问题
+    handle_httpstatus_list = [301, 302, 204, 206, 403, 404, 500]
 
     def __init__(self, name=None, **kwargs):
-        super(TXDetailSpider, self).__init__(name=None, **kwargs)
+        super(DetailSpider, self).__init__(name=None, **kwargs)
         self.count = 0
         self.request_stop = False
         self.request_stop_time = 0
@@ -76,7 +76,7 @@ class TXDetailSpider(scrapy.Spider):
 
                 if not source_url:
                     continue
-                # 如果存在则不抓取
+
                 if self.checkDao.checkExist(source_url):
                     self.logDao.info(u'文章已经存在' + title + ':' + post_date + ':' + source_url)
                     continue

@@ -22,7 +22,7 @@ from libMe.db.Connector import Connector
 
 class MysqlPipeline(object):
     def __init__(self):
-        self.connector = Connector(isLocalDB=True)
+        self.connector = Connector(isLocalDB=False)
 
     def process_item(self, item, spider):
         cursor = self.connector.cursor()

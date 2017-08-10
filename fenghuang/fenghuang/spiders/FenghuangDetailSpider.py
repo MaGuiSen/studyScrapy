@@ -122,11 +122,6 @@ class TXDetailSpider(scrapy.Spider):
             for article in articles:
                 source_url = article.xpath('./h1/a/@href').extract_first('').lstrip('%20').lstrip(' ')
                 title = article.xpath('./h1/a/text()').extract_first('')
-                # post_date = article.xpath('./div[@class="Function"]/span/text()').extract_first('')
-                # try:
-                #     post_date = time.strftime("%Y-%m-%d %H:%M:%S", time.strptime(post_date, "%Y-%m-%d %H:%M"))
-                # except Exception:
-                #     pass
                 if not source_url:
                     continue
                 # 如果存在则不抓取

@@ -97,6 +97,7 @@ class DataMonitorDao(object):
             weixin_total
             weixin_source_total
             weixin_account_total
+            diyicaijing_total
         :return:
         更新总数
         """
