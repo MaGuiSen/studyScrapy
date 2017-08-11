@@ -17,14 +17,11 @@ from ..db.CheckDao import CheckDao
 from ..items import ContentItem
 
 
-# 60s整体刷新一次
 class SinaSpider(scrapy.Spider):
     name = 'sina2'
     download_delay = 2.5  # 基础间隔 0.5*download_delay --- 1.5*download_delays之间的随机数
     handle_httpstatus_list = [301, 302, 204, 206, 403, 404, 500]  # 可以处理重定向及其他错误码导致的 页面无法获取解析的问题
 
-    # 错误码 [scrapy.downloadermiddlewares.retry] DEBUG: Retrying <GET http://tech.sina.com.cn/i/2017-07-18/doc-ifyiakur9086112.shtml> (failed 1 times): TCP connection timed out: 10060: �������ӷ���һ��ʱ���û����ȷ�𸴻����ӵ�����û�з�Ӧ�����ӳ���ʧ�ܡ�.
-    # [scrapy.downloadermiddlewares.retry] DEBUG: Retrying <GET http://tech.sina.com.cn/i/2017-07-17/doc-ifyiakwa4300270.shtml> (failed 1 times): User timeout caused connection failure: Getting http://tech.sina.com.cn/i/2017-07-17/doc-ifyiakwa4300270.shtml took longer than 180.0 seconds..
     def __init__(self, name=None, **kwargs):
         super(SinaSpider, self).__init__(name=None, **kwargs)
         self.count = 0
@@ -59,7 +56,6 @@ class SinaSpider(scrapy.Spider):
 
         # 进行爬虫
         url = 'http://roll.news.sina.com.cn/interface/rollnews_ch_out_interface.php?col=96&spec=&type=&ch=01&k=&offset_page=0&offset_num=0&num=220&asc=&page=1'
-        # url = 'http://tech.sina.com.cn/t/2017-07-24/doc-ifyihrit1274195.shtml'
 
         r = random.uniform(0, 1)
         newUrl = url + ('&r=' + str(r))
@@ -238,7 +234,7 @@ class SinaSpider(scrapy.Spider):
             if not len(content_html):
                 self.logDao.info(u'不存在内容：' + source_url)
                 return
-            # 去除内部不需要的标签  2017-07-24 19:23
+            # 去除内部不需要的标签
             # 完整案例：content_html.xpath('*[not(boolean(@class="entHdPic" or @class="ep-source cDGray")) and not(name(.)="script")]').extract()
             content_items = content_html.xpath('*[not(boolean(@class="entHdPic")) and not(name(.)="script")]')
 

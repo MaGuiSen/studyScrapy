@@ -17,14 +17,13 @@ from ..items import ContentItem
 from libMe.db.DataMonitorDao import DataMonitorDao
 
 
-# 60s/120s/300s 刷新一次
-class TXDetailSpider(scrapy.Spider):
+class DetailSpider(scrapy.Spider):
     name = 'hexun_detail'
     download_delay = 2.5  # 基础间隔 0.5*download_delay --- 1.5*download_delays之间的随机数
     handle_httpstatus_list = [301, 302, 204, 206, 403, 404, 500]  # 可以处理重定向及其他错误码导致的 页面无法获取解析的问题
 
     def __init__(self, name=None, **kwargs):
-        super(TXDetailSpider, self).__init__(name=None, **kwargs)
+        super(DetailSpider, self).__init__(name=None, **kwargs)
         self.count = 0
         self.request_stop = False
         self.request_stop_time = 0
@@ -117,6 +116,8 @@ class TXDetailSpider(scrapy.Spider):
             styleUrls = selector.xpath('//link[@rel="stylesheet"]/@href').extract()
             styleList = []
             for styleUrl in styleUrls:
+                if styleUrl.startswith('//'):
+                    styleUrl = 'http:' + styleUrl
                 # 得到hash作为key
                 styleUrlHash = EncryptUtil.md5(styleUrl)
                 if not self.css.get(styleUrlHash):
@@ -175,12 +176,17 @@ class TXDetailSpider(scrapy.Spider):
 
             for img in imgs:
                 # 图片可能放在src 或者data-src
-                image_url = img.xpath('@src').extract_first()
+                image_url_base = img.xpath('@src').extract_first('')
+                if image_url_base.startswith('//'):
+                    image_url = 'http:' + image_url_base
+                else:
+                    image_url = image_url_base
                 if image_url and image_url.startswith('http'):
                     self.logDao.info(u'得到图片：' + image_url)
                     image_urls.append({
                         'url': image_url,
                     })
+                    content_html = content_html.replace(image_url_base, image_url)
 
             urlHash = EncryptUtil.md5(source_url.encode('utf8'))
             self.saveFile(urlHash, body)

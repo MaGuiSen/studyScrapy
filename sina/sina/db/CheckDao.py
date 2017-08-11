@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 from libMe.db.Connector import Connector
 from libMe.util import EncryptUtil
 
@@ -16,7 +15,6 @@ class CheckDao(object):
     def checkExist(self, source_url):
         """
         存在逻辑判断
-        :return:
         """
         hash_code = self.getHashCode(source_url)
         cursor = self.connector.cursor()
@@ -29,6 +27,7 @@ class CheckDao(object):
         if results or self.isInHashList(hash_code):
             return True
         else:
+            self.hashList.append(hash_code)
             return False
 
     def isInHashList(self, hash_code):
@@ -38,11 +37,9 @@ class CheckDao(object):
         # 具体逻辑
         return EncryptUtil.md5(source_url)
 
-
     def getAllHtml(self):
         """
         存在逻辑判断
-        :return:
         """
         cursor = self.connector.cursor()
         if not cursor:
@@ -65,7 +62,6 @@ class CheckDao(object):
     def getHtml(self, pageIndex):
         """
         存在逻辑判断
-        :return:
         """
         cursor = self.connector.cursor()
         if not cursor:
@@ -93,6 +89,7 @@ class CheckDao(object):
         cursor.execute(sql_query, (content_html, id))
         cursor.close()
         self.connector.commit()
+
 
 # checkDao = CheckDao()
 # results = checkDao.getAllHtml()

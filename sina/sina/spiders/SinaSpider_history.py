@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 import random
 import time
-
 import demjson
 import scrapy
 from scrapy import Selector
-
 from libMe.db.DataMonitorDao import DataMonitorDao
 from libMe.db.LogDao import LogDao
 from libMe.util import CssUtil
@@ -17,14 +15,11 @@ from ..db.CheckDao import CheckDao
 from ..items import ContentItem
 
 
-# 60s整体刷新一次
 class SinaSpider(scrapy.Spider):
     name = 'sina_history'
     download_delay = 2  # 基础间隔 0.5*download_delay --- 1.5*download_delays之间的随机数
     handle_httpstatus_list = [301, 302, 204, 206, 403, 404, 500]  # 可以处理重定向及其他错误码导致的 页面无法获取解析的问题
 
-    # 错误码 [scrapy.downloadermiddlewares.retry] DEBUG: Retrying <GET http://tech.sina.com.cn/i/2017-07-18/doc-ifyiakur9086112.shtml> (failed 1 times): TCP connection timed out: 10060: �������ӷ���һ��ʱ���û����ȷ�𸴻����ӵ�����û�з�Ӧ�����ӳ���ʧ�ܡ�.
-    # [scrapy.downloadermiddlewares.retry] DEBUG: Retrying <GET http://tech.sina.com.cn/i/2017-07-17/doc-ifyiakwa4300270.shtml> (failed 1 times): User timeout caused connection failure: Getting http://tech.sina.com.cn/i/2017-07-17/doc-ifyiakwa4300270.shtml took longer than 180.0 seconds..
     def __init__(self, name=None, **kwargs):
         super(SinaSpider, self).__init__(name=None, **kwargs)
         self.count = 0
@@ -86,7 +81,6 @@ class SinaSpider(scrapy.Spider):
                     self.logDao.info(u'文章已经存在：' + title + source_url)
                     continue
                 self.logDao.info(u"开始抓取文章：" + source_url)
-                # item['url'] = "http://tech.sina.com.cn/d/f/2017-07-31/doc-ifyinvwu3872514.shtml"
                 yield scrapy.Request(url=item['url'],
                                      meta={'request_type': 'sina_detail', 'category': channel_name,
                                            'title': title, 'source_url': source_url},
@@ -117,7 +111,6 @@ class SinaSpider(scrapy.Spider):
                     self.logDao.info(u'文章已经存在：' + title + source_url)
                     continue
                 self.logDao.info(u"开始抓取文章：" + item['url'])
-                # item['url'] = "http://tech.sina.com.cn/d/f/2017-07-31/doc-ifyinvwu3872514.shtml"
                 yield scrapy.Request(url=item['url'],
                                      meta={'request_type': 'sina_detail', 'category': channel_name,
                                            'title': title, 'source_url': source_url},

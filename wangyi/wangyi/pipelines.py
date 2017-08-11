@@ -70,7 +70,7 @@ class MysqlPipeline(object):
 class MyImagesPipeline(ImagesPipeline):
     def __init__(self, store_uri, download_func=None, settings=None):
         super(MyImagesPipeline, self).__init__(store_uri, download_func=None, settings=None)
-        botName = 'wangyi'  # 注意需要更改。。。
+        botName = 'wangyi'  # TODO..注意需要更改
         self.fileUtil = UploadUtil(u'/news/' + botName + u'/image/',
                                  u'img/')
 

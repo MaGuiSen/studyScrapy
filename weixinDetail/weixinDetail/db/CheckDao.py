@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 from libMe.db.Connector import Connector
 from libMe.util import EncryptUtil
 
@@ -17,7 +16,6 @@ class CheckDao(object):
         """
         存在逻辑判断
         source_id : 源ID 微信为1
-        :return:
         """
         hash_code = self.getHashCode(title, wx_account, source_id)
         cursor = self.connector.cursor()
@@ -43,7 +41,6 @@ class CheckDao(object):
     def getAllStyle(self):
         """
         存在逻辑判断
-        :return:
         """
         cursor = self.connector.cursor()
         if not cursor:
@@ -57,7 +54,6 @@ class CheckDao(object):
     def getHtml(self, pageIndex):
         """
         存在逻辑判断
-        :return:
         """
         cursor = self.connector.cursor()
         if not cursor:
@@ -86,6 +82,7 @@ class CheckDao(object):
         cursor.close()
         self.connector.commit()
 
+# 去除样式背景颜色
 # checkDao = CheckDao()
 # results = checkDao.getAllStyle()
 # for result in results:
@@ -93,6 +90,7 @@ class CheckDao(object):
 #     styles = CssUtil.clearBackgroundColor(styles, ['#f3f3f3'])
 #     checkDao.updateStyles(id, styles)
 
+# 取出标签alt title内容
 # pageIndex = 1
 # while True:
 #     results = checkDao.getHtml(pageIndex)

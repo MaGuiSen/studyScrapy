@@ -15,7 +15,6 @@ class CheckDao(object):
     def checkExist(self, source_url):
         """
         存在逻辑判断
-        :return:
         """
         hash_code = self.getHashCode(source_url)
         cursor = self.connector.cursor()
@@ -28,6 +27,7 @@ class CheckDao(object):
         if results or self.isInHashList(hash_code):
             return True
         else:
+            self.hashList.append(hash_code)
             return False
 
     def isInHashList(self, hash_code):
@@ -40,7 +40,6 @@ class CheckDao(object):
     def getHtml(self, pageIndex):
         """
         获取所有html逻辑
-        :return:
         """
         cursor = self.connector.cursor()
         if not cursor:
@@ -54,7 +53,6 @@ class CheckDao(object):
     def getPostTime(self, pageIndex):
         """
         时间逻辑
-        :return:
         """
         cursor = self.connector.cursor()
         if not cursor:
@@ -92,6 +90,8 @@ class CheckDao(object):
         cursor.close()
         self.connector.commit()
 
+
+        # 处理时间格式问题
         # checkDao = CheckDao()
         # pageIndex = 1
         # while True:

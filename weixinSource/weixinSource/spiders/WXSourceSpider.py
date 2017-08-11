@@ -42,7 +42,6 @@ class WXSourceSpider(scrapy.Spider):
             # 20s检测一次
             TimerUtil.sleep(20)
             self.logDao.warn(u'检测网络不可行')
-            # continue
 
         # 检测服务器
         while not NetworkUtil.checkService():

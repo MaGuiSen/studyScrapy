@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 import time
-
 import scrapy
 from scrapy import Selector
-
 from libMe.db.LogDao import LogDao
 from libMe.util import CssUtil
 from libMe.util import EncryptUtil
@@ -15,7 +13,6 @@ from ..items import ContentItem
 from libMe.db.DataMonitorDao import DataMonitorDao
 
 
-# 60s/120s/300s 刷新一次
 class TXDetailSpider(scrapy.Spider):
     name = 'tengxun_detail'
     download_delay = 2.5  # 基础间隔 0.5*download_delay --- 1.5*download_delays之间的随机数
@@ -118,8 +115,6 @@ class TXDetailSpider(scrapy.Spider):
                     continue
                 self.logDao.info(u'抓取文章' + title + ':' + post_date + ':' + source_url)
 
-                # source_url = 'http://tech.qq.com/a/20170721/026542.htm'
-                # http://tech.qq.com/a/20170721/025237.htm
                 yield scrapy.Request(url=source_url,
                                      meta={'request_type': 'tengxun_detail', "title": title, 'post_date': post_date,
                                            'src_channel': src_channel,

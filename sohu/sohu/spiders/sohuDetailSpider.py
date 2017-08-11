@@ -17,14 +17,13 @@ from ..items import ContentItem
 from libMe.db.DataMonitorDao import DataMonitorDao
 
 
-# 60s/120s/300s 刷新一次
-class TXDetailSpider(scrapy.Spider):
+class DetailSpider(scrapy.Spider):
     name = 'sohu_detail'
     download_delay = 2.5  # 基础间隔 0.5*download_delay --- 1.5*download_delays之间的随机数
     handle_httpstatus_list = [301, 302, 204, 206, 403, 404, 500]  # 可以处理重定向及其他错误码导致的 页面无法获取解析的问题
 
     def __init__(self, name=None, **kwargs):
-        super(TXDetailSpider, self).__init__(name=None, **kwargs)
+        super(DetailSpider, self).__init__(name=None, **kwargs)
         self.count = 0
         self.request_stop = False
         self.request_stop_time = 0

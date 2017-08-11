@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 import random
-
 import demjson
 import scrapy
 from scrapy import Selector
-
 from libMe.db.LogDao import LogDao
 from libMe.util import CssUtil
 from libMe.util import EncryptUtil
@@ -16,7 +14,6 @@ from ..items import ContentItem
 from libMe.db.DataMonitorDao import DataMonitorDao
 
 
-# 60s/120s/300s 刷新一次
 class WYDetailSpider(scrapy.Spider):
     name = 'wangyi_detail'
     download_delay = 2.5  # 基础间隔 0.5*download_delay --- 1.5*download_delays之间的随机数
@@ -83,6 +80,7 @@ class WYDetailSpider(scrapy.Spider):
             jsonStr = demjson.decode(body) or {}
             articles = jsonStr.get('news') or []
             categoryList = jsonStr.get('category') or []
+
             for article_ins in articles:
                 for article in article_ins:
                     source_url = article.get('l', '')
@@ -123,6 +121,8 @@ class WYDetailSpider(scrapy.Spider):
             styleUrls = selector.xpath('//link[@rel="stylesheet"]/@href').extract()
             styleList = []
             for styleUrl in styleUrls:
+                if styleUrl.startswith('//'):
+                    styleUrl = 'http:' + styleUrl
                 # 得到hash作为key
                 styleUrlHash = EncryptUtil.md5(styleUrl)
                 if not self.css.get(styleUrlHash):
@@ -167,12 +167,17 @@ class WYDetailSpider(scrapy.Spider):
 
             for img in imgs:
                 # 图片可能放在src 或者data-src
-                image_url = img.xpath('@src').extract_first()
+                image_url_base = img.xpath('@src').extract_first('')
+                if image_url_base.startswith('//'):
+                    image_url = 'http:' + image_url_base
+                else:
+                    image_url = image_url_base
                 if image_url and image_url.startswith('http'):
                     self.logDao.info(u'得到图片：' + image_url)
                     image_urls.append({
                         'url': image_url,
                     })
+                    content_html = content_html.replace(image_url_base, image_url)
 
             urlHash = EncryptUtil.md5(source_url.encode('utf8'))
             self.saveFile(urlHash, body)

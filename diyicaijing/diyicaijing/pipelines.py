@@ -71,7 +71,7 @@ class MysqlPipeline(object):
 class MyImagesPipeline(ImagesPipeline):
     def __init__(self, store_uri, download_func=None, settings=None):
         super(MyImagesPipeline, self).__init__(store_uri, download_func=None, settings=None)
-        botName = 'diyicaijing'  # 注意需要更改。。。
+        botName = 'diyicaijing'  # TODO..注意需要更改
         self.fileUtil = UploadUtil(u'/news/' + botName + u'/image/',
                                    u'img/')
 
@@ -150,7 +150,6 @@ class MyImageDownLoad(object):
                             }
                         }
                 except Exception, e:
-                    print e
                     spider.logDao.warn(u'下载图片失败:' + url)
                     image_url_new = {
                         'ok': False,
