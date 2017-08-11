@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 import json
 import time
-
 import demjson
 import scrapy
 from scrapy import Selector
-
 from libMe.db.LogDao import LogDao
 from libMe.util import CssUtil
 from libMe.util import EncryptUtil
