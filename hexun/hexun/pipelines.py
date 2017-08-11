@@ -7,11 +7,9 @@
 
 
 import time
-
 import requests
 from scrapy import Request
 from scrapy.pipelines.images import ImagesPipeline
-
 from libMe.util.FileUtil import UploadUtil
 from util import EncryptUtil
 from util import FileUtil

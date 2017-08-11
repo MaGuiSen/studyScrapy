@@ -271,10 +271,12 @@ class WXDetailSpider(scrapy.Spider):
             return contentItem
 
     def saveFile(self, title, content):
-        filename = 'html/%s.html' % title
-        with open(filename, 'wb') as f:
-            f.write(content.encode("utf8"))
-        self.log('Saved file %s' % filename)
+        # TODO..暂时不保存，考虑保存下来复用效果不佳
+        return
+        # filename = 'html/%s.html' % title
+        # with open(filename, 'wb') as f:
+        #     f.write(content.encode("utf8"))
+        # self.log('Saved file %s' % filename)
 
     def getBrokenAccounts(self):
         loadF = None

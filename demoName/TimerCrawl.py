@@ -1,20 +1,13 @@
 # -*- coding: utf-8 -*-
 
 import logging
-
 import subprocess
-
 import datetime
 from apscheduler.schedulers.blocking import BlockingScheduler
 from libMe.db.DataMonitorDao import DataMonitorDao
 # 为了处理：No handlers could be found for logger “apscheduler.scheduler”
-# logger = logging.getLogger('apscheduler.executors.default')
-# logger.setLevel(logging.INFO)  # DEBUG
-# fmt = logging.Formatter('%(levelname)s:%(name)s:%(message)s')
-# h = logging.StreamHandler()
-# h.setFormatter(fmt)
-# logger.addHandler(h)
 logging.basicConfig()
+
 
 def heartBeat():
     # 心跳

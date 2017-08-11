@@ -97,7 +97,6 @@ class DataMonitorDao(object):
             weixin_total
             weixin_source_total
             weixin_account_total
-            diyicaijing_total
         :return:
         更新总数
         """
@@ -170,7 +169,7 @@ class DataMonitorDao(object):
         try:
             cursor.execute(sql_query, (type,))
         except Exception as e:
-            print e.msg
+            pass
         results = cursor.fetchall()
         if not cursor_out:
             cursor.close()
@@ -225,7 +224,8 @@ class DataMonitorDao(object):
         try:
             cursor.execute(sql_query)
         except Exception as e:
-            print e.msg
+            print e
+            pass
         results = cursor.fetchone()
         if not cursor_out:
             cursor.close()
@@ -234,8 +234,5 @@ class DataMonitorDao(object):
             return count
         else:
             return 0
-
-# print DataMonitorDao().getTotal(cursor_out=None, type='weixin_account_total', account='qqtech')
-# print DataMonitorDao().getAllHeartBeatTime(cursor_out=None)
 
 

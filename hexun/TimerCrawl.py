@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import logging
-
 import subprocess
-
 import datetime
 from apscheduler.schedulers.blocking import BlockingScheduler
 from libMe.db.DataMonitorDao import DataMonitorDao
