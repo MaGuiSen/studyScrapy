@@ -49,21 +49,31 @@ class WYDetailSpider(scrapy.Spider):
                 self.logDao.warn(u'检测服务器不可行')
 
             src_channel = '网易科技'
+            sub_channel = '科技'
             # 进行页面访问
             newUrl = 'http://tech.163.com/special/00094IHV/news_json.js?' + str(random.uniform(0, 1))
             self.logDao.warn(u'进行抓取列表:' + newUrl)
             yield scrapy.Request(url=newUrl,
-                                 meta={'request_type': 'wangyi_page_list', 'url': newUrl,
-                                       'src_channel': src_channel},
+                                 meta={
+                                     'request_type': 'wangyi_page_list',
+                                     'url': newUrl,
+                                     'src_channel': src_channel,
+                                     'sub_channel': sub_channel
+                                 },
                                  callback=self.parseArticleList, dont_filter=True)
 
             src_channel = '网易财经'
+            sub_channel = '财经'
             # 进行页面访问
             newUrl = 'http://money.163.com/special/00251G8F/news_json.js?' + str(random.uniform(0, 1))
             self.logDao.warn(u'进行抓取列表:' + newUrl)
             yield scrapy.Request(url=newUrl,
-                                 meta={'request_type': 'wangyi_page_list', 'url': newUrl,
-                                       'src_channel': src_channel},
+                                 meta={
+                                     'request_type': 'wangyi_page_list',
+                                     'url': newUrl,
+                                     'src_channel': src_channel,
+                                     'sub_channel': sub_channel
+                                 },
                                  callback=self.parseArticleList, dont_filter=True)
 
     # TODO...还没有遇到被禁止的情况
@@ -74,6 +84,7 @@ class WYDetailSpider(scrapy.Spider):
             self.logDao.info(u'访问过多被禁止')
         else:
             src_channel = response.meta['src_channel']
+            sub_channel = response.meta['sub_channel']
             self.logDao.info(u'开始解析列表')
             body = body.lstrip('var data=').rstrip(';')
             # 格式化
@@ -94,12 +105,21 @@ class WYDetailSpider(scrapy.Spider):
                     category = ''
                     if 0 <= categoryIndex < len(categoryList):
                         category = categoryList[categoryIndex].get('n')
+
+                    if category:
+                        sub_channel = sub_channel + ',' + category
+
                     post_date = article.get('p')
                     self.logDao.info(u'抓取文章' + title + ':' + post_date + ':' + source_url)
                     yield scrapy.Request(url=source_url,
-                                         meta={'request_type': 'wangyi_detail', "title": title, 'category':category,'post_date': post_date,
-                                               "source_url": source_url,
-                                               'src_channel': src_channel},
+                                         meta={
+                                             'request_type': 'wangyi_detail',
+                                             'title': title,
+                                             'post_date': post_date,
+                                             'source_url': source_url,
+                                             'src_channel': src_channel,
+                                             'sub_channel': sub_channel
+                                         },
                                          callback=self.parseArticle)
 
     def parseArticle(self, response):
@@ -107,8 +127,8 @@ class WYDetailSpider(scrapy.Spider):
         if False:
             self.logDao.info(u'访问过多被禁止')
         else:
-            category = response.meta['category']
             src_channel = response.meta['src_channel']
+            sub_channel = response.meta['sub_channel']
             title = response.meta['title']
             post_date = response.meta['post_date']
             source_url = response.meta['source_url']
@@ -199,7 +219,7 @@ class WYDetailSpider(scrapy.Spider):
             contentItem['title'] = title
             contentItem['source_url'] = source_url
             contentItem['post_date'] = post_date
-            contentItem['sub_channel'] = category
+            contentItem['sub_channel'] = sub_channel
             contentItem['post_user'] = ''
             contentItem['tags'] = ''
             contentItem['styles'] = styles

@@ -106,6 +106,7 @@ class DetailSpider(scrapy.Spider):
                                    },
                              callback=self.parseArticleList, dont_filter=True)
 
+        src_channel = u'凤凰科技'
         sub_channel = u'资讯'
         url = 'http://tech.ifeng.com/listpage/800/0/1/rtlist.shtml'
         styleUrlDefault = ['http://p0.ifengimg.com/fe/responsiveDetail/styles/pc_c38f5a0e.css']
@@ -247,6 +248,8 @@ class DetailSpider(scrapy.Spider):
             tags = selector.xpath('//meta[@name="keywords"]/@content').extract_first('')
 
             category = selector.xpath('//meta[boolean(contains(@name, "og:category"))]/@content').extract_first('')
+            if category:
+                sub_channel = sub_channel + ',' + category
 
             src_ref = selector.xpath('//span[@class="ss03"]//text()').extract_first('')
             if not src_ref.replace('\n', '').replace(' ', ''):
@@ -337,7 +340,7 @@ class DetailSpider(scrapy.Spider):
             contentItem['title'] = title
             contentItem['source_url'] = source_url
             contentItem['post_date'] = post_date
-            contentItem['sub_channel'] = category + '-' + sub_channel
+            contentItem['sub_channel'] = sub_channel
             contentItem['post_user'] = ''
             contentItem['tags'] = tags
             contentItem['styles'] = styles

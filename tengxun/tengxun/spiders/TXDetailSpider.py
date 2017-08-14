@@ -49,22 +49,30 @@ class TXDetailSpider(scrapy.Spider):
 
             # 进行页面访问
             src_channel = '腾讯科技'
+            sub_channel = '科技'
             newUrl = 'http://tech.qq.com/l/scroll.htm'
             self.logDao.warn(u'进行抓取列表:' + newUrl)
             yield scrapy.Request(url=newUrl,
-                                 meta={'request_type': 'tengxun_page_list',
-                                       'src_channel': src_channel,
-                                       'url': newUrl},
+                                 meta={
+                                     'request_type': 'tengxun_page_list',
+                                     'url': newUrl,
+                                     'src_channel': src_channel,
+                                     'sub_channel': sub_channel
+                                 },
                                  callback=self.parseArticleList, dont_filter=True)
 
             # 进行页面访问
             src_channel = '腾讯财经'
+            sub_channel = '财经要闻'
             newUrl = 'http://finance.qq.com/'
             self.logDao.warn(u'进行抓取列表:' + newUrl)
             yield scrapy.Request(url=newUrl,
-                                 meta={'request_type': 'tengxun_page_list',
-                                       'src_channel': src_channel,
-                                       'url': newUrl},
+                                 meta={
+                                     'request_type': 'tengxun_page_list',
+                                     'url': newUrl,
+                                     'src_channel': src_channel,
+                                     'sub_channel': sub_channel
+                                 },
                                  callback=self.parseArticleList2, dont_filter=True)
 
     # TODO...还没有遇到被禁止的情况
@@ -74,6 +82,7 @@ class TXDetailSpider(scrapy.Spider):
             self.logDao.info(u'访问过多被禁止')
         else:
             src_channel = response.meta['src_channel']
+            sub_channel = response.meta['sub_channel']
             self.logDao.info(u'开始解析列表')
             selector = Selector(text=body)
             articles = selector.xpath('//div[@class="list yaowen"]//li[boolean(contains(@class, "item"))]/a[1]')
@@ -89,9 +98,14 @@ class TXDetailSpider(scrapy.Spider):
                 self.logDao.info(u'抓取文章' + title + ':' + source_url)
 
                 yield scrapy.Request(url=source_url,
-                                     meta={'request_type': 'tengxun_detail', "title": title, 'post_date': '',
-                                           'src_channel': src_channel,
-                                           "source_url": source_url},
+                                     meta={
+                                         'request_type': 'tengxun_detail',
+                                         "title": title,
+                                         'post_date': '',
+                                         'source_url': source_url,
+                                         'src_channel': src_channel,
+                                         'sub_channel': sub_channel,
+                                     },
                                      callback=self.parseArticle)
 
     # TODO...还没有遇到被禁止的情况
@@ -101,6 +115,7 @@ class TXDetailSpider(scrapy.Spider):
             self.logDao.info(u'访问过多被禁止')
         else:
             src_channel = response.meta['src_channel']
+            sub_channel = response.meta['sub_channel']
             self.logDao.info(u'开始解析列表')
             selector = Selector(text=body)
             articles = selector.xpath('//div[@class="mod newslist"]//li')
@@ -116,9 +131,13 @@ class TXDetailSpider(scrapy.Spider):
                 self.logDao.info(u'抓取文章' + title + ':' + post_date + ':' + source_url)
 
                 yield scrapy.Request(url=source_url,
-                                     meta={'request_type': 'tengxun_detail', "title": title, 'post_date': post_date,
-                                           'src_channel': src_channel,
-                                           "source_url": source_url},
+                                     meta={
+                                         'request_type': 'tengxun_detail',
+                                         'title': title, 'post_date': post_date,
+                                         'source_url': source_url,
+                                         'src_channel': src_channel,
+                                         'sub_channel': sub_channel,
+                                     },
                                      callback=self.parseArticle)
 
     def parseArticle(self, response):
@@ -128,6 +147,7 @@ class TXDetailSpider(scrapy.Spider):
         else:
             title = response.meta['title']
             src_channel = response.meta['src_channel']
+            sub_channel = response.meta['sub_channel']
             post_date = response.meta['post_date']
             source_url = response.meta['source_url']
             self.logDao.info(u'开始解析文章:' + title + ':' + post_date + ':' + source_url)
@@ -152,6 +172,8 @@ class TXDetailSpider(scrapy.Spider):
             styles = CssUtil.clearUrl(styles)
 
             category = selector.xpath('//*[@class="a_catalog"]/a/text()|//*[@class="a_catalog"]/text()').extract_first('')
+            if category:
+                sub_channel = sub_channel + ',' + category
 
             post_user = selector.xpath('//*[@class="a_author"]/text() | //*[@class="auth color-a-3"]//text() | //*[@class="where"]/text()| //*[@class="where"]/a/text()').extract_first('')
 
@@ -238,7 +260,7 @@ class TXDetailSpider(scrapy.Spider):
             contentItem['title'] = title
             contentItem['source_url'] = source_url
             contentItem['post_date'] = post_date
-            contentItem['sub_channel'] = category
+            contentItem['sub_channel'] = sub_channel
             contentItem['post_user'] = post_user
             contentItem['tags'] = ''
             contentItem['styles'] = styles

@@ -62,14 +62,22 @@ class DetailSpider(scrapy.Spider):
             TimerUtil.sleep(20)
             self.logDao.warn(u'检测服务器不可行')
 
+        src_channel = '搜狐科技'
+        sub_channel = '科技'
+
         for page in range(1, 4):
             # 进行页面访问
             url = 'http://v2.sohu.com/public-api/feed?scene=CHANNEL&sceneId=30&size=20&callback=&_=1502075449669&page='
             newUrl = url + str(page)
             self.logDao.warn(u'进行抓取列表:' + newUrl)
             yield scrapy.Request(url=newUrl,
-                                 meta={'request_type': 'sohu_page_list', 'url': newUrl},
-                                callback=self.parseArticleList, dont_filter=True)
+                                 meta={
+                                     'request_type': 'sohu_page_list',
+                                     'url': newUrl,
+                                     'src_channel': src_channel,
+                                     'sub_channel': sub_channel
+                                 },
+                                 callback=self.parseArticleList, dont_filter=True)
 
     # TODO...还没有遇到被禁止的情况
     def parseArticleList(self, response):
@@ -77,6 +85,8 @@ class DetailSpider(scrapy.Spider):
         if False:
             self.logDao.info(u'访问过多被禁止')
         else:
+            src_channel = response.meta['src_channel']
+            sub_channel = response.meta['sub_channel']
             # 格式化
             articles = demjson.decode(body.lstrip('/**/').lstrip('(').rstrip(';').rstrip(')')) or []
             if not articles:
@@ -106,10 +116,16 @@ class DetailSpider(scrapy.Spider):
                 self.logDao.info(u'抓取文章' + title + ':' + post_date + ':' + source_url)
 
                 yield scrapy.Request(url=source_url,
-                                     meta={'request_type': 'sohu_detail', "title": title, 'post_date': post_date,
-                                           'post_user': post_user,
-                                           'tags': tagsStr,
-                                           "source_url": source_url},
+                                     meta={
+                                         'request_type': 'sohu_detail',
+                                         'title': title,
+                                         'post_date': post_date,
+                                         'post_user': post_user,
+                                         'tags': tagsStr,
+                                         'source_url': source_url,
+                                         'src_channel': src_channel,
+                                         'sub_channel': sub_channel
+                                     },
                                      callback=self.parseArticle)
 
     def parseArticle(self, response):
@@ -117,6 +133,8 @@ class DetailSpider(scrapy.Spider):
         if False:
             self.logDao.info(u'访问过多被禁止')
         else:
+            src_channel = response.meta['src_channel']
+            sub_channel = response.meta['sub_channel']
             title = response.meta['title']
             post_user = response.meta['post_user']
             tags = response.meta['tags']
@@ -213,7 +231,7 @@ class DetailSpider(scrapy.Spider):
             contentItem['title'] = title
             contentItem['source_url'] = source_url
             contentItem['post_date'] = post_date
-            contentItem['sub_channel'] = ''
+            contentItem['sub_channel'] = sub_channel
             contentItem['post_user'] = post_user
             contentItem['tags'] = ','.join(tags)
             contentItem['styles'] = styles
@@ -222,7 +240,7 @@ class DetailSpider(scrapy.Spider):
             contentItem['info_type'] = 1
             contentItem['src_source_id'] = 7
             # contentItem['src_account_id'] = 0
-            contentItem['src_channel'] = '搜狐科技'
+            contentItem['src_channel'] = src_channel
             contentItem['src_ref'] = '搜狐科技'
             return contentItem
 

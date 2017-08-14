@@ -61,11 +61,18 @@ class DetailSpider(scrapy.Spider):
             TimerUtil.sleep(20)
             self.logDao.warn(u'检测服务器不可行')
 
+        src_channel = '第一财经'
+        sub_channel = '新闻'
         # 进行页面访问
         newUrl = 'http://www.yicai.com/news/'
         self.logDao.warn(u'进行抓取列表:' + newUrl)
         yield scrapy.Request(url=newUrl,
-                             meta={'request_type': 'diyicaijing_page_list', 'url': newUrl},
+                             meta={
+                                 'request_type': 'diyicaijing_page_list',
+                                 'url': newUrl,
+                                 'src_channel': src_channel,
+                                 'sub_channel': sub_channel
+                             },
                              callback=self.parseArticleList, dont_filter=True)
 
     # TODO...还没有遇到被禁止的情况
@@ -76,15 +83,20 @@ class DetailSpider(scrapy.Spider):
         else:
             self.logDao.info(u'开始解析列表')
             selector = Selector(text=body)
+            src_channel = response.meta['src_channel']
+            sub_channel = response.meta['sub_channel']
             articles = selector.xpath('//dl[@class="f-cb dl-item"]')
             for article in articles:
                 source_url = article.xpath('.//h3[@class="f-ff1 f-fwn f-fs22"]/a/@href').extract_first('')
                 title = article.xpath('.//h3[@class="f-ff1 f-fwn f-fs22"]/a/text()').extract_first('')
-                sub_channel = article.xpath('.//h5[@class="f-ff1 f-fwn f-fs14"]/a/text()').extract_first('')
+                sub_channel_ = article.xpath('.//h5[@class="f-ff1 f-fwn f-fs14"]/a/text()').extract_first('')
                 post_date = article.xpath('.//h4[@class="f-ff1 f-fwn f-fs14"]/span/text()').extract_first('')
 
                 if not source_url:
                     continue
+
+                if sub_channel_:
+                    sub_channel = sub_channel + ',' + sub_channel_
 
                 if self.checkDao.checkExist(source_url):
                     self.logDao.info(u'文章已经存在' + title + ':' + post_date + ':' + source_url)
@@ -92,9 +104,14 @@ class DetailSpider(scrapy.Spider):
                 self.logDao.info(u'抓取文章' + title + ':' + post_date + ':' + source_url)
 
                 yield scrapy.Request(url=source_url,
-                                     meta={'request_type': 'diyicaijing_detail', "title": title, 'post_date': post_date,
-                                           "source_url": source_url,
-                                           'sub_channel': sub_channel},
+                                     meta={
+                                         'request_type': 'diyicaijing_detail',
+                                         "title": title,
+                                         'post_date': post_date,
+                                         'source_url': source_url,
+                                         'sub_channel': sub_channel,
+                                         'src_channel': src_channel,
+                                     },
                                      callback=self.parseArticle)
 
     def parseArticle(self, response):
@@ -102,6 +119,7 @@ class DetailSpider(scrapy.Spider):
         if False:
             self.logDao.info(u'访问过多被禁止')
         else:
+            src_channel = response.meta['src_channel']
             sub_channel = response.meta['sub_channel']
             title = response.meta['title']
             post_date = response.meta['post_date']
@@ -210,7 +228,7 @@ class DetailSpider(scrapy.Spider):
             contentItem['info_type'] = 1
             contentItem['src_source_id'] = 9
             # contentItem['src_account_id'] = 0
-            contentItem['src_channel'] = '第一财经'
+            contentItem['src_channel'] = src_channel
             contentItem['src_ref'] = src_ref
             return contentItem
 

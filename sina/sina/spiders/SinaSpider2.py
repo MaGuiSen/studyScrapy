@@ -53,30 +53,51 @@ class SinaSpider(scrapy.Spider):
             # continue
 
         src_channel = '新浪科技'
-
+        sub_channel = '科技'
         # 进行爬虫
         url = 'http://roll.news.sina.com.cn/interface/rollnews_ch_out_interface.php?col=96&spec=&type=&ch=01&k=&offset_page=0&offset_num=0&num=220&asc=&page=1'
 
         r = random.uniform(0, 1)
         newUrl = url + ('&r=' + str(r))
         self.logDao.info(u"开始抓取列表：" + newUrl)
-        yield scrapy.Request(url=newUrl, meta={'request_type': 'sina_list', 'url': newUrl, 'src_channel': src_channel},
+        yield scrapy.Request(url=newUrl,
+                             meta={
+                                 'request_type': 'sina_list',
+                                 'url': newUrl,
+                                 'src_channel': src_channel,
+                                 'sub_channel': sub_channel
+                             },
                              callback=self.parseList)
 
+        src_channel = '新浪科技'
+        sub_channel = '科技'
         # 补缺补漏
         url = 'http://feed.mix.sina.com.cn/api/roll/get?pageid=372&lid=2431&k=&num=50&page=1&callback=&_=1501148356254'
         r = random.uniform(0, 1)
         newUrl = url + ('&r=' + str(r))
         self.logDao.info(u"开始抓取列表：" + newUrl)
-        yield scrapy.Request(url=newUrl, meta={'request_type': 'sina_list', 'url': newUrl, 'src_channel': src_channel},
+        yield scrapy.Request(url=newUrl,
+                             meta={
+                                 'request_type': 'sina_list',
+                                 'url': newUrl,
+                                 'src_channel': src_channel,
+                                 'sub_channel': sub_channel
+                             },
                              callback=self.parseList2)
 
         # 新浪财经 要闻
         src_channel = '新浪财经'
+        sub_channel = '要闻'
         url = 'http://finance.sina.com.cn/'
         newUrl = url
         self.logDao.info(u"开始抓取列表：" + newUrl)
-        yield scrapy.Request(url=newUrl, meta={'request_type': 'sina_list', 'url': newUrl, 'src_channel': src_channel},
+        yield scrapy.Request(url=newUrl,
+                             meta={
+                                 'request_type': 'sina_list',
+                                 'url': newUrl,
+                                 'src_channel': src_channel,
+                                 'sub_channel': sub_channel
+                             },
                              callback=self.parseList3)
 
     # TODO。。还没有找到被禁止的情况
@@ -86,6 +107,7 @@ class SinaSpider(scrapy.Spider):
             self.logDao.info(u'访问过多被禁止')
         else:
             src_channel = response.meta['src_channel']
+            sub_channel = response.meta['sub_channel']
             url = response.meta['url']
             self.logDao.info(u'开始解析列表' + url)
 
@@ -93,7 +115,6 @@ class SinaSpider(scrapy.Spider):
             articles = selector.xpath('//*[@id="fin_tabs0_c0"]//a')
             # 格式化
             for article in articles:
-                channel_name = u'财经'
                 title = article.xpath('./text()').extract_first('')
                 source_url = article.xpath('./@href').extract_first('')
                 if not source_url:
@@ -106,9 +127,13 @@ class SinaSpider(scrapy.Spider):
                 self.logDao.info(u"开始抓取文章：" + source_url)
 
                 yield scrapy.Request(url=source_url,
-                                     meta={'request_type': 'sina_detail', 'category': channel_name,
-                                           'src_channel': src_channel,
-                                           'title': title, 'source_url': source_url},
+                                     meta={
+                                         'request_type': 'sina_detail',
+                                         'title': title,
+                                         'source_url': source_url,
+                                         'src_channel': src_channel,
+                                         'sub_channel': sub_channel
+                                     },
                                      callback=callback)
 
     # TODO。。还没有找到被禁止的情况
@@ -118,6 +143,7 @@ class SinaSpider(scrapy.Spider):
             self.logDao.info(u'访问过多被禁止')
         else:
             src_channel = response.meta['src_channel']
+            sub_channel = response.meta['sub_channel']
             url = response.meta['url']
             self.logDao.info(u'开始解析列表' + url)
 
@@ -128,7 +154,6 @@ class SinaSpider(scrapy.Spider):
             list = result.get('data', [])
 
             for item in list:
-                channel_name = u'科技'
                 title = item.get('title', '')
                 source_url = item.get('url', '')
                 callback = self.parseDetail2
@@ -138,9 +163,13 @@ class SinaSpider(scrapy.Spider):
                 self.logDao.info(u"开始抓取文章：" + source_url)
                 # item['url'] = "http://tech.sina.com.cn/d/f/2017-07-31/doc-ifyinvwu3872514.shtml"
                 yield scrapy.Request(url=item['url'],
-                                     meta={'request_type': 'sina_detail', 'category': channel_name,
-                                           'src_channel': src_channel,
-                                           'title': title, 'source_url': source_url},
+                                     meta={
+                                         'request_type': 'sina_detail',
+                                         'title': title,
+                                         'source_url': source_url,
+                                         'src_channel': src_channel,
+                                         'sub_channel': sub_channel
+                                     },
                                      callback=callback)
 
     # TODO。。还没有找到被禁止的情况
@@ -150,6 +179,7 @@ class SinaSpider(scrapy.Spider):
             self.logDao.info(u'访问过多被禁止')
         else:
             src_channel = response.meta['src_channel']
+            sub_channel = response.meta['sub_channel']
             url = response.meta['url']
             self.logDao.info(u'开始解析列表' + url)
 
@@ -162,6 +192,8 @@ class SinaSpider(scrapy.Spider):
             for item in list:
                 channel = item.get('channel', {})
                 channel_name = channel.get('title', '')
+                if channel_name:
+                    sub_channel = sub_channel + ',' + channel_name
                 title = item.get('title', '')
                 source_url = item.get('url', '')
                 callback = self.parseDetail2
@@ -171,9 +203,13 @@ class SinaSpider(scrapy.Spider):
                 self.logDao.info(u"开始抓取文章：" + item['url'])
                 # item['url'] = "http://tech.sina.com.cn/d/f/2017-07-31/doc-ifyinvwu3872514.shtml"
                 yield scrapy.Request(url=item['url'],
-                                     meta={'request_type': 'sina_detail', 'category': channel_name,
-                                           'src_channel': src_channel,
-                                           'title': title, 'source_url': source_url},
+                                     meta={
+                                         'request_type': 'sina_detail',
+                                         'title': title,
+                                         'source_url': source_url,
+                                         'src_channel': src_channel,
+                                         'sub_channel': sub_channel
+                                     },
                                      callback=callback)
 
     def parseDetail2(self, response):
@@ -181,11 +217,11 @@ class SinaSpider(scrapy.Spider):
         if False:
             self.logDao.info(u'访问过多被禁止')
         else:
+            sub_channel = response.meta['sub_channel']
             src_channel = response.meta['src_channel']
-            category = response.meta['category']
             title = response.meta['title']
             source_url = response.meta['source_url']
-            self.logDao.info(u'开始解析文章:' + title + ':' + category + ':' + source_url)
+            self.logDao.info(u'开始解析文章:' + title + ':' + source_url)
 
             selector = Selector(text=body)
 
@@ -302,7 +338,7 @@ class SinaSpider(scrapy.Spider):
             contentItem['title'] = title
             contentItem['source_url'] = source_url
             contentItem['post_date'] = post_date
-            contentItem['sub_channel'] = category
+            contentItem['sub_channel'] = sub_channel
             contentItem['post_user'] = post_user
             contentItem['tags'] = tags
             contentItem['styles'] = styles
