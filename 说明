@@ -42,3 +42,39 @@
     代码中的下载路径中
     6）有些页面的样式，采用的是级联的方式，即：在抓取的内容区的外层可能需要手动添加标签进行内容区的包裹，才能正常显示样式
     7）微信容易被禁止的问题，更换ip之后也可能被禁止
+
+4、不同渠道的来源区分设定
+     1）规定
+        src_channel:网址来源是什么
+        sub_channel:对应网址上哪部分采集数据
+     2）具体
+     diyicaijing
+        src_channel:
+        sbu_channel:
+     fenghuang
+        src_channel:
+        sbu_channel:
+     hexun
+        src_channel:
+        sbu_channel:
+     jiemian
+        src_channel:
+        sbu_channel:
+     sina
+        src_channel:
+        sbu_channel:
+     sohu
+        src_channel:
+        sbu_channel:
+     tengxun
+        src_channel:
+        sbu_channel:
+     wangyi
+        src_channel:
+        sbu_channel:
+     weixinDetail
+        src_channel:
+        sbu_channel:
+     weixinSource
+        src_channel:
+        sbu_channel:

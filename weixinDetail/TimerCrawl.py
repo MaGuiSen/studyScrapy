@@ -28,7 +28,7 @@ def start():
     start_spider('wx_detail')
 
 
-timeSpace = 10 * 60 * 6 * 2
+timeSpace = 10 * 60 * 6 * 3
 heartTime = 1 * 60  # 心跳跳动时间间隔
 scheduler = BlockingScheduler(daemonic=False)
 scheduler.add_job(heartBeat, 'interval', seconds=heartTime)
