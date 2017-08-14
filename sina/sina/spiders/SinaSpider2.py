@@ -73,7 +73,6 @@ class SinaSpider(scrapy.Spider):
 
         # 新浪财经 要闻
         src_channel = '新浪财经'
-        # 补缺补漏
         url = 'http://finance.sina.com.cn/'
         newUrl = url
         self.logDao.info(u"开始抓取列表：" + newUrl)
