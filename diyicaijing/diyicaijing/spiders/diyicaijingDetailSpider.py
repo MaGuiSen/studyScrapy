@@ -61,8 +61,8 @@ class DetailSpider(scrapy.Spider):
             TimerUtil.sleep(20)
             self.logDao.warn(u'检测服务器不可行')
 
-        src_channel = '第一财经'
-        sub_channel = '新闻'
+        src_channel = u'第一财经'
+        sub_channel = u'新闻'
         # 进行页面访问
         newUrl = 'http://www.yicai.com/news/'
         self.logDao.warn(u'进行抓取列表:' + newUrl)
@@ -96,7 +96,7 @@ class DetailSpider(scrapy.Spider):
                     continue
 
                 if sub_channel_:
-                    sub_channel = sub_channel + ',' + sub_channel_
+                    sub_channel = EncodeUtil.toUnicode(sub_channel) + u',' + EncodeUtil.toUnicode(sub_channel_)
 
                 if self.checkDao.checkExist(source_url):
                     self.logDao.info(u'文章已经存在' + title + ':' + post_date + ':' + source_url)

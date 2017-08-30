@@ -52,8 +52,8 @@ class SinaSpider(scrapy.Spider):
             self.logDao.warn(u'检测服务器不可行')
             # continue
 
-        src_channel = '新浪科技'
-        sub_channel = '科技'
+        src_channel = u'新浪科技'
+        sub_channel = u'科技'
         # 进行爬虫
         url = 'http://roll.news.sina.com.cn/interface/rollnews_ch_out_interface.php?col=96&spec=&type=&ch=01&k=&offset_page=0&offset_num=0&num=220&asc=&page=1'
 
@@ -69,8 +69,8 @@ class SinaSpider(scrapy.Spider):
                              },
                              callback=self.parseList)
 
-        src_channel = '新浪科技'
-        sub_channel = '科技'
+        src_channel = u'新浪科技'
+        sub_channel = u'科技'
         # 补缺补漏
         url = 'http://feed.mix.sina.com.cn/api/roll/get?pageid=372&lid=2431&k=&num=50&page=1&callback=&_=1501148356254'
         r = random.uniform(0, 1)
@@ -86,8 +86,8 @@ class SinaSpider(scrapy.Spider):
                              callback=self.parseList2)
 
         # 新浪财经 要闻
-        src_channel = '新浪财经'
-        sub_channel = '要闻'
+        src_channel = u'新浪财经'
+        sub_channel = u'要闻'
         url = 'http://finance.sina.com.cn/'
         newUrl = url
         self.logDao.info(u"开始抓取列表：" + newUrl)

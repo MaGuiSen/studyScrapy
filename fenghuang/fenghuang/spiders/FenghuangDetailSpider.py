@@ -265,7 +265,7 @@ class DetailSpider(scrapy.Spider):
                 try:
                     post_date = time.strftime("%Y-%m-%d %H:%M:%S", time.strptime(post_date, "%Y-%m-%d %H:%M"))
                 except Exception as e:
-                    self.logDao.warn(e.msg)
+                    self.logDao.warn(e.message)
                     pass
                 pass
 

@@ -62,8 +62,8 @@ class DetailSpider(scrapy.Spider):
             TimerUtil.sleep(20)
             self.logDao.warn(u'检测服务器不可行')
 
-        src_channel = '搜狐科技'
-        sub_channel = '科技'
+        src_channel = u'搜狐科技'
+        sub_channel = u'科技'
 
         for page in range(1, 4):
             # 进行页面访问

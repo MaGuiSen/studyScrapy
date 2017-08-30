@@ -48,8 +48,8 @@ class TXDetailSpider(scrapy.Spider):
                 self.logDao.warn(u'检测服务器不可行')
 
             # 进行页面访问
-            src_channel = '腾讯科技'
-            sub_channel = '科技'
+            src_channel = u'腾讯科技'
+            sub_channel = u'科技'
             newUrl = 'http://tech.qq.com/l/scroll.htm'
             self.logDao.warn(u'进行抓取列表:' + newUrl)
             yield scrapy.Request(url=newUrl,
@@ -62,8 +62,8 @@ class TXDetailSpider(scrapy.Spider):
                                  callback=self.parseArticleList, dont_filter=True)
 
             # 进行页面访问
-            src_channel = '腾讯财经'
-            sub_channel = '财经要闻'
+            src_channel = u'腾讯财经'
+            sub_channel = u'财经要闻'
             newUrl = 'http://finance.qq.com/'
             self.logDao.warn(u'进行抓取列表:' + newUrl)
             yield scrapy.Request(url=newUrl,
@@ -173,7 +173,7 @@ class TXDetailSpider(scrapy.Spider):
 
             category = selector.xpath('//*[@class="a_catalog"]/a/text()|//*[@class="a_catalog"]/text()').extract_first('')
             if category:
-                sub_channel = sub_channel + ',' + category
+                sub_channel = sub_channel + u',' + category
 
             post_user = selector.xpath('//*[@class="a_author"]/text() | //*[@class="auth color-a-3"]//text() | //*[@class="where"]/text()| //*[@class="where"]/a/text()').extract_first('')
 

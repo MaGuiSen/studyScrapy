@@ -48,8 +48,8 @@ class WYDetailSpider(scrapy.Spider):
                 TimerUtil.sleep(20)
                 self.logDao.warn(u'检测服务器不可行')
 
-            src_channel = '网易科技'
-            sub_channel = '科技'
+            src_channel = u'网易科技'
+            sub_channel = u'科技'
             # 进行页面访问
             newUrl = 'http://tech.163.com/special/00094IHV/news_json.js?' + str(random.uniform(0, 1))
             self.logDao.warn(u'进行抓取列表:' + newUrl)
@@ -62,8 +62,8 @@ class WYDetailSpider(scrapy.Spider):
                                  },
                                  callback=self.parseArticleList, dont_filter=True)
 
-            src_channel = '网易财经'
-            sub_channel = '财经'
+            src_channel = u'网易财经'
+            sub_channel = u'财经'
             # 进行页面访问
             newUrl = 'http://money.163.com/special/00251G8F/news_json.js?' + str(random.uniform(0, 1))
             self.logDao.warn(u'进行抓取列表:' + newUrl)
@@ -107,7 +107,7 @@ class WYDetailSpider(scrapy.Spider):
                         category = categoryList[categoryIndex].get('n')
 
                     if category:
-                        sub_channel = sub_channel + ',' + category
+                        sub_channel = EncodeUtil.toUnicode(sub_channel) + u',' + EncodeUtil.toUnicode(category)
 
                     post_date = article.get('p')
                     self.logDao.info(u'抓取文章' + title + ':' + post_date + ':' + source_url)

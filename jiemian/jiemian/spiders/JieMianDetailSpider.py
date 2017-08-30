@@ -62,15 +62,15 @@ class DetailSpider(scrapy.Spider):
             self.logDao.warn(u'检测服务器不可行')
         # 必读 玩物 产品榜 快报 游戏要闻 单品 盘点 花边要闻 游戏快报
         cids = [
-            {'src_channel': '界面科技', 'sub_channel': '必读', 'num': '6'},
-            {'src_channel': '界面科技', 'sub_channel': '玩物', 'num': '66'},
-            {'src_channel': '界面科技', 'sub_channel': '产品榜', 'num': '73'},
-            {'src_channel': '界面科技', 'sub_channel': '快报', 'num': '84'},
-            {'src_channel': '界面游戏', 'sub_channel': '游戏要闻', 'num': '100'},
-            {'src_channel': '界面游戏', 'sub_channel': '单品', 'num': '119'},
-            {'src_channel': '界面游戏', 'sub_channel': '盘点', 'num': '120'},
-            {'src_channel': '界面游戏', 'sub_channel': '花边要闻', 'num': '121'},
-            {'src_channel': '界面游戏', 'sub_channel': '游戏快报', 'num': '122'}
+            {'src_channel': u'界面科技', 'sub_channel': u'必读', 'num': '6'},
+            {'src_channel': u'界面科技', 'sub_channel': u'玩物', 'num': '66'},
+            {'src_channel': u'界面科技', 'sub_channel': u'产品榜', 'num': '73'},
+            {'src_channel': u'界面科技', 'sub_channel': u'快报', 'num': '84'},
+            {'src_channel': u'界面游戏', 'sub_channel': u'游戏要闻', 'num': '100'},
+            {'src_channel': u'界面游戏', 'sub_channel': u'单品', 'num': '119'},
+            {'src_channel': u'界面游戏', 'sub_channel': u'盘点', 'num': '120'},
+            {'src_channel': u'界面游戏', 'sub_channel': u'花边要闻', 'num': '121'},
+            {'src_channel': u'界面游戏', 'sub_channel': u'游戏快报', 'num': '122'}
         ]
         # 必读
         url = 'https://a.jiemian.com/index.php?m=lists&a=ajaxlist&callback=&_=1502103362598&page='

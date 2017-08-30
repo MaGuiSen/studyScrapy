@@ -149,12 +149,12 @@ class DetailSpider(scrapy.Spider):
             src_ref = selector.xpath('//div[@class="tip fl"]/a/text()').extract_first('')
 
             post_date = selector.xpath('//div[@class="tip fl"]/span[@class="pr20"]/text()').extract_first('')
-
-            try:
-                post_date = time.strftime("%Y-%m-%d %H:%M:%S", time.strptime(post_date, "%Y-%m-%d %H:%M:%S"))
-            except Exception as e:
-                self.logDao.warn(e.msg)
-                pass
+            if post_date:
+                try:
+                    post_date = time.strftime("%Y-%m-%d %H:%M:%S", time.strptime(post_date, "%Y-%m-%d %H:%M:%S"))
+                except Exception as e:
+                    self.logDao.warn(e.message)
+                    pass
 
             content_html = selector.xpath('//div[@class="art_contextBox"]')
             if not len(content_html):
